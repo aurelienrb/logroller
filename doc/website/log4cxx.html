@@ -1,0 +1,645 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Log4cxx</h3>
+
+<blockquote>
+Although log4cxx has many features, its first design goal was speed. Some log4cxx components have been rewritten many times to improve performance. Nevertheless, contributors frequently come up with new optimizations. You should be pleased to know that when configured with the SimpleLayout performance tests have shown log4j to log as quickly as std::cout.
+<br />
+Log4cxx is a popular logging package written in C++. One of its distinctive features is the notion of inheritance in loggers. Using a logger hierarchy it is possible to control which log statements are output at arbitrary granularity. This helps reduce the volume of logged output and minimize the cost of logging.
+<br />
+One of the advantages of the log4cxx API is its manageability. Once the log statements have been inserted into the code, they can be controlled with configuration files. They can be selectively enabled or disabled, and sent to different and multiple output targets in user-chosen formats. The log4cxx package is designed so that log statements can remain in shipped code without incurring a heavy performance cost.
+</blockquote>
+
+<blockquote>
+Inserting log requests into the application code requires a fair amount of planning and effort. Observation shows that approximately 4 percent of code is dedicated to logging. Consequently, even moderately sized applications will have thousands of logging statements embedded within their code. Given their number, it becomes imperative to manage these log statements without the need to modify them manually.
+</blockquote>
+
+<p>There is a very good definition of logging in the log4cxx manual:
+</p>
+
+<blockquote>
+Almost every large application includes its own logging or tracing API. Inserting log statements into code is a low-tech method for debugging it. It may also be the only way because debuggers are not always available or applicable. This is usually the case for multithreaded applications and distributed applications at large.
+<br />
+Experience indicates that logging was an important component of the development cycle. It offeres several advantages. It provides precise context about a run of the application. Once inserted into the code, the generation of logging output requires no human intervention. Moreover, log output can be saved in persistent medium to be studied at a later time. In addition to its use in the development cycle, a sufficiently rich logging package can also be viewed as an auditing tool.
+<br />
+Logging does have its drawbacks. It can slow down an application. If too verbose, it can cause scrolling blindness. To alleviate these concerns, log4cxx is designed to be reliable, fast and extensible. Since logging is rarely the main focus of an application, the log4cxx API strives to be simple to understand and to use.
+</blockquote>
+
+<p>This introduction makes also a distinction between <b>logging</b> and
+<b>tracing</b>.
+</p>
+
+<p>Here is my opinion about log4cxx.</p>
+
+<p>A few years ago, before I wrote my first logging library, I first look
+at log4cxx. I remember I found it overcomplex for my need, and quickly forgot
+the idea to use it.
+</p>
+
+<p>That's why today, my creterea number one is "simplicity". Several years later,
+I have a much better knowledge of C++, and many "dark aspects" become to be natural
+te me. So it is sometimes difficult to remember how I used to feel unconmfortable
+with many aspects, that sound so obvious to a C++ expert that he even can't imagine
+people have difficulties with that.
+</p>
+
+<p>Some example of such obvious things that are not so obvious to beginners
+are:
+</p>
+
+<ul>
+<li>header files : that can sound crazy for some C/C++ developers, but many
+beginers are unable or feel very impressed if they have to look inside a
+header file. For them, it's like having to look at the source code of their
+Linux kernel to understand how to open a file.</li>
+<li>declaration / definition concepts: the concept of declaration and definition
+is quite long to understand and assimilate. That's what so many beginners don't
+understand they have link errors because they declared a static object in they
+class header file.</li>
+<li>templates. Beginers can feel comfortable when using well designed templates.
+std::vector is a typical example. They easily understand the syntax of it.
+However, they might not really know and understand what happens. And most of the
+time they don't really care. First, they are learning C++ since only few days,
+and they have to deal with veray basic concepts like OOP, or if they already
+have a programmer background, they have to deal with a new syntax, and they can
+regret every day their so regreted prefered programming language, which can be
+Java or C#, but also Php or Javasscript.
+So they may not like C++, or even more they may not
+like programming. But they have to program in C++ for a particular reason.
+I think the goal of a library designer should be to easier this task, not
+to make it more difficult. And for them, having to write template code can be very
+intimidating. This also include concepts like functors, and so on.</li>
+<li>installation and compilation of a new library.
+As I said, the concept of header files is quite weird to many begginers.
+C/C++ experts tend to forget this. As a result, installing a library can be
+a very complex task for them, especially if a compilation is needed.
+The concept of header file path is quite unknown, as many beginners rely on
+their IDE. They are also very intimidated by the command line.
+In particular, I read the following message in the boost mailing list:
+<pre>
+From: Konstantin Litvinenko (Konstantin.Litvinenko_at_[hidden])
+
+> He also wanted the library to be small, and I fully agree with this.
+> A header file and that's it.
+
+    I think this is a very bad idea. Every one try to implement libs in
+headers. Why? Why not provide good and comprehensive infrastructure for C++
+development? That is major problem. No one can easily pick package from well
+known source(repository), say download it and write one or two lines in jam
+and had a working solution. With such infrastructure building complex libs
+with many dependecies will be as easy as "Just include this header and every
+things will work".
+Sorry for offtopic, but this problem must be addressed somehow :( 
+</pre>
+
+Sorry Konstantin, but I think you are wrong. Even for many C++ developpers,
+using a tool such as bjam is all but not easy. Only the fact to use it
+in order to compile Boost is very complex for many developpers.
+They don't have to write any line in jam, they just have to open a command
+prompt, read few line of the doc, and type few commands in order to make
+it work. But still, it is too much work. Because they might already use and
+love qmake, or cmake, or GNU make, or scons, or I don't know what else.
+And they don't want to learn yet an other tool they don't need because they
+are already perfectly know and use the best tool of the world (from their
+point of view).
+
+This is also because people are
+lazy. When we want to quickly evaluate a tool, we don't want to spend
+a whole day to install it, in order to discover in 1 minute it does not fit
+our need and to deinstall it just after. So if your library can not be very
+quickly and very easily instalable and evaluable, people wont simply not
+give it a try. That's why, I guess, the very talented C++ developpers of
+Boost Consulting decided to develop a GUI installer for Windows users,
+so they can install Boost just by clicking on few buttons.
+And gues what? It is still too complex for some users, and that's why I decided
+to write a tutorial about how to use this installer to use and install Boost
+with Visual C++. And you know what? People still get errors and asked me for
+help, even if I had taken care to give such possible error and how to solve
+them in my article.
+</li>
+</ul>
+
+<p>Let's have a look at few lines of the given "delayedloop" example:
+</p>
+
+<pre>
+/**
+This test program sits in a loop and logs things. Its logging is
+configured by a configuration file. Changes to this configuration
+file are monitored and when a change occurs, the config file is re-read.
+*/
+class DelayedLoop
+{
+	static LoggerPtr logger;
+
+public:
+	static void main(int argc, char **argv)
+	{
+</pre>
+
+<p>First, as a C++ developper, I may love C++ as much as I hate Java.
+So, seeing a "static void main" class member function may make me feel
+quite even more suspect against this unidentified object comming from the Java
+world. It may trigger me the question "Isn't this some Java code stupidely
+rewriten in C++, whitout taking in consideration the C++ specificities?".
+</p>
+
+<p>But okay, just forget this point, it is just an example.
+However, there is something else that make be even more suspicious.
+The static LoggerPtr member. Does this mean I have to modify my classes
+interface to introduce, or should I say to pollute, them with the concept
+of logging? 
+</p>
+
+<p>At the bottom of the file, we find the answer:
+</p>
+
+<pre>
+LoggerPtr DelayedLoop::logger = Logger::getLogger(_T("DelayedLoop"));
+
+int main(int argc, char **argv)
+{
+    int result = EXIT_SUCCESS;
+    try
+    {
+		    DelayedLoop::main(argc, argv);
+	  }
+	  catch(Exception&)
+	  {
+        result = EXIT_FAILURE;
+	  }
+
+    return result;
+}
+</pre>
+
+<p>No, it seems we don't. We could move the private static LoggerPtr
+object to an anonymous namespace in our class implementation file.
+However, we see we have to initialize the logger, which break my
+rule "no need of initialisation". 
+</p>
+
+<p>We also discover a weird and suspicious Exception type. What is that?
+Where is it defined (not in the example code), what does it stand for,
+who can trigger this? The typical way to handle exception safety in Java
+is with the finally keyword. C++ does not have such a thing, and use something
+quite different which is the RAII idiom. Does log4cxx use RAII? Or does it
+do things a la Java, as other pieces of code mage us to think so?
+</p>
+
+<p>Can Logger::getLogger trigger an exception? What about if this happens
+during the initialisation of the static DelayedLoop::logger object? How
+to catch it? 
+</p>
+
+<p>We also discover the existence of a _T macro, and some others unicode-ansi
+conversion related macros.
+</p>
+
+<pre>
+		if(argc == 2) 
+		{
+			USES_CONVERSION;
+			init(A2T(argv[1]));
+		}
+</pre>
+
+<p>
+As far I as know, this kind of macros was introduced by Microsoft for
+COM programming, and that's not the smartest thing they did.
+http://msdn2.microsoft.com/en-us/library/87zae4a3(VS.71).aspx
+And today, the ATL documentation recommends not to use them, but to use
+a special class instead.
+</p>
+<p>
+You can read my opinion on mixing UNCIODE and log files here.
+</p>
+
+<p>In this example, we also discover the existence of several
+very suspects objects:
+</p>
+<pre>
+	static void init(const String& configFile)
+	{
+#ifdef HAVE_XML
+		if(StringHelper::endsWith(configFile, _T("xml")))
+		{
+			xml::DOMConfigurator::configureAndWatch(configFile, 3000);
+		} 
+		else
+#endif
+		{
+			PropertyConfigurator::configureAndWatch(configFile, 3000);
+		}
+	}
+</pre>
+
+<p>Compared to this initialisation code, the call to Logger::getLogger
+was a joke. What is this awful String object? What about std::string?
+How does this configuration watching works? What is really doing
+the configureAndWatch fucntion? Why do I have to worry if my configutaion
+file is an xml or not? Why do I have to macro-protect my code?
+</p>
+
+<p>And finnaly, the last part of the example is the core of the running loop:
+</p>
+
+<pre>
+	static void test()
+	{
+		int i = 0;
+		while(true)
+		{
+			LOG4CXX_DEBUG(logger, _T("MSG ") &lt;&lt; i++);
+			try
+			{
+				Thread::sleep(1000);
+			} 
+			catch(Exception& e)
+			{
+			}
+		}
+	}
+</pre>
+
+<p>Yet again, this looks like Java code, not C++. And yet again, this example
+triggers many questions. Where does this Thread object comes from?
+</p>
+
+<p>So, the main question about log4cxx is "Is it really a logging library?",
+as it looks like more a large complexe framework which can handle XML,
+threads, strings, settings configuation, smart pointers, etc.
+So, it is not surprising that the total size of the source code is 700Ko.
+This code includes interesting features like the ability to log in a console,
+a remote socket server, the NT Event Logger, etc. But the is also many code
+which is intended to handle string management, threading and thread
+synchronisation, xml parsing (based on Msxml), networking (socket),
+database connection (ODBC), etc. 
+</p>
+<p>What if I already use another framework (like Qt) which comes with its own string,
+thread, xml, settings objects? What about the dependencies, the compilation and
+the installation of log4cxx?
+</p>
+
+<p>Some people might argue that is can be useful. I think it is not the right
+place to do that. The main focus of of logging library should be: logging.
+log4cxx does much more ("far too much" in my opinion), and it is not a big
+surprise to discover some leaks in the "out of the context" code.
+For example, if you decide to use the given log4cxx::helpers::Thread
+class in your Visual C++
+project to create and execute new threads, you can run into possible
+memory leak. This is because the Thread class use the Win32 system call
+CreateThread to create the new thread, and then run the given C++ code
+into it. The problem is that the given C++ code is very likely to call
+function from the C/C++ standard library (the CRT) which needs to store
+some specific per-thread data (like <tt>errno</tt>). Instead, it should
+use the <tt>_beginthread()</tt> function, in order not to generate
+memory leak on thread terminaison, which is very low (about 70-80 bytes), 
+but does still exists
+(see http://support.microsoft.com/?scid=kb%3Ben-us%3B104641&x=13&y=10).
+</p>
+
+<p>This is a very specific issue that is more likely to be known by developpers
+of a multi-threading library than developpers or a logging library.
+That's why I think developpers of a logging library should focus only on
+logging.
+</p>
+
+<p>The good news is that I found this in the source code of the
+0.9.7 version, and that the version in development at the time I wrote
+this seems now to use the "Apache Portable Runtime (APR)" which does
+not have this problem.
+<br />
+But this triggers new questions regarding the source code compatility.
+So, first, you wanted to add logging features to your software, and
+you end up in wondering if the new version of this <i>logging</i> library
+will not break your <i>threading</i> code. That's why I wrote the rule
+"logging, nothing more".
+</p>
+
+<p>As a result, here are the included files:
+</p>
+
+<pre>
+#include &lt;log4cxx/logger.h>
+#include &lt;log4cxx//helpers/stringhelper.h>
+#include &lt;log4cxx/xml/domconfigurator.h>
+#include &lt;log4cxx/propertyconfigurator.h>
+#include &lt;log4cxx/helpers/thread.h>
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+</pre>
+
+<p>"Without looking at the documentation of the library", my first impression
+of log4cxx is it is a "library for space shuttle developpers". It won't be easy
+to correct it, but let's try it, and go to read the documentation.
+</p>
+
+<p>One good point for log4cxx is its documentation. It is well documented,
+and the html presentation makes it pleasant to read. So, let's read the
+"short introduction", which at a glance does not look so short.
+</p>
+
+<p>Quickly, we learn what is the conception of logging of log4cxx.
+
+<blockquote>
+Log4cxx has three main components: loggers, appenders and layouts.
+These three types of components work together to enable developers to log
+messages according to message type and level, and to control at runtime how
+these messages are formatted and where they are reported.
+<br />
+<b>Logger hierarchy</b><br />
+<br />
+The first and foremost advantage of any logging API over plain std::cout
+resides in its ability to disable certain log statements while allowing
+others to print unhindered. This capability assumes that the logging space,
+that is, the space of all possible logging statements, is categorized
+according to some developer-chosen criteria.
+</blockquote>
+
+<p>This is a quite good start, but the following becomes quickly complex,
+or should I say "over-complex". You have to learn and understand the concept
+of logging space organized with several loggers which are named entities
+following some hierarchical naming rule, with a concept of ancestor and
+descendant, parent and child, root logger, level inheritance.
+</p>
+
+<p>You still don't know how to log a "Hello World!" message that you have
+to deal with all this complex stuff in order to make proper initialisation
+of your logger. The docs even has to gives 4 tables in order to clarify
+all this. 
+</p>
+
+<p>Then you have to choose a level for your logging request, and to understand
+the implication of the choosen level.
+</p>
+
+<blockquote>
+A logging request is said to be enabled if its level is higher than or equal
+to the level of its logger. Otherwise, the request is said to be disabled.
+A logger without an assigned level will inherit one from the hierarchy.
+This rule is summarized below.
+<br />
+<b>Basic Selection Rule</b><br />
+<br />
+A log request of level p in a logger with (either assigned or inherited,
+whichever is appropriate) level q, is enabled if p >= q.
+</blockquote>
+
+<p>I needed to read 3 times the "basic" in order to undertsand it.
+But in fact the concept is fairly simple and expected in a logging library.
+The following of the manual makes it simpler to understand:
+</p>
+
+<blockquote>
+This rule is at the heart of log4cxx.
+It assumes that levels are ordered.
+For the standard levels, we have TRACE &lt; DEBUG &lt; INFO &lt;
+WARN &lt; ERROR &lt; FATAL.
+</blockquote>
+
+<p>Ok, so the log4cxx filtering mechanism is based on 2 things:
+a logger named space (location) and a log request level (type).
+The first mechanism is used at run-time, while the second
+is used both at run-time and at compile time. (by using the given macros,
+it is possible not to compile a particular level of log messages).
+</p>
+
+<p>The run-time behaviour can be configured via source code or it can
+dynamically read (and even monitor) a config file, as we saw previously.
+</p>
+
+<p>So, we must carrely choose a name for our logger. A question raises
+to me: what about the file name? Isn't it a good default way to identify
+the location of a log message? Why log4cxx couldn't automaticcaly
+use the current file name as a defaut way to hierarchicaly organize
+the log messages? If I want to introduce log4cxx in my already exisiting
+500K lines source code, wouldn't this simplify me the job? While being
+still a sharp way to do it, as source file is usually well structured
+in a file directory hierarchy. So why not reusing this existing well
+defined hierarchy? Ans what about using RTTI to get the current class name?
+Especially for a library coming from the Java world, it could be well accepted.
+</p>
+
+<p>That's not the recommended way.
+</p>
+
+<blockquote>
+Log4cxx makes it easy to name loggers by software component.
+This can be accomplished by statically instantiating a logger in each class,
+with the logger name equal to the fully qualified name of the class.
+This is a useful and straightforward method of defining loggers.
+</blockquote>
+
+<p>So, the recommend way, i.e the way log4cxx has been designed to be used,
+is to modify each class interface to introduce the concept of logger.
+I really dont like this approach, for the previous given reasons. But also
+because it can be error prone. Let's take the typical following example:
+</p>
+
+<pre>
+class A
+{
+protected:
+    static LoggerPtr logger;
+};
+
+static LoggerPtr A::logger = Logger::getLogger(_T("A"));
+</pre>
+
+<p>I, you, may be even the author of this code, don't know why
+logger is not made private. The obvious anwer is: it is just
+a mistake. Programmers are just human, they do mistakes, and someone
+will do this first mistake.  
+</p>
+
+<p>Then, an other developper will quickly create class B inheriting from
+A:  
+</p>
+
+<pre>
+class B : public A
+{
+public:
+    void DoSomething();
+};
+</pre>
+
+<p>And because he was in a hurry, because he didn't need logging at this time,
+he forgets to introduce the logger concept. It is easy to forget this, because
+you don't need this concept in your class. But you have to introduce it because
+log4cxx ask you to do so. In fact, log4cxx "asks you to handle something the
+library should do but doesn't". 
+</p>
+
+<p>Finally comes the lastest and the easiest mistake. You simply log something
+from B.cpp. You do it as it is done everywhere, maybe because you follow a
+convetion, by writing: 
+</p>
+
+<pre>
+void B::DoSomething()
+{
+    LOG4CXX_INFO( logger, "Doing something." );
+}
+</pre>
+
+<p>Now, guess which logger is used? The one from class A of course.
+That is, this message will be wrongly reported as coming from A, and
+will never be reported as coming from B. You can spend hours to understand
+why your B::DoSomething() is never executed, because you can't see any message
+from B from your filtered output.
+</p>
+
+<p>I am the first to agree this example <!-- capilotracté -->
+is very unlikely to occurs. But, at least in theory, it can. That's why
+I think "the best way to identify the location of a log message its to rely
+on the preprocessor macros" __FILE__, __LINE__, and __FUNCTION__ if available.
+It is also possible "to use RTTI".
+</p>
+
+<p>But log4cxx convinced me that the use of a namespace built by hand is
+not a smart approch, in particular if you force the user of your library
+to do so.
+</p>
+
+<p>CONFIRM: log4cxx does not use the preprocessor macros at all, and I think
+it is a big issue. You can think about such a trick:
+</p>
+
+<pre>
+static LoggerPtr A::logger = Logger::getLogger( __FILE__ );
+</pre>
+
+<p>But it does not follow the naming convention of log4cxx, which is the
+one used by Java. So you would have to code a special function to do
+the necessary conversion, like this:
+</p>
+
+<pre>
+static LoggerPtr A::logger = GetLoggerFromSourceFileName( __FILE__ );
+</pre>
+
+<p>But this is a trick to solve a limitation in the design of log4cxx. A good
+logging library should not make you to do this.
+</p>
+
+<p>An other level of consideration is the overhead of such an approach.
+Medern C++ software can easily have more than 500 classes. Does it mean
+we have to create 500 instances of Logger? In terme of memory overhead,
+I think that 500 instance of this class is almost unoticable.
+But in term of "source code overhead", it is huge. You have to pay attention
+of how you allocate and initialize an object 500 more times.
+And remember the rule of thumb "the less you write code, the less you may
+have bugs".
+Then, as all these classes are dynamically structured in a hierarchy,
+we can wonder about the run-time performance of such a heavy structure
+(see bellow).
+</p>
+
+<p>Outputing is done with through <i>appenders</i>:
+<p>
+
+<blockquote>
+Log4cxx allows logging requests to print to multiple destinations.
+In log4cxx speak, an output destination is called an appender.
+Currently, appenders exist for the console, files, GUI components,
+remote socket servers,  NT Event Loggers, and remote UNIX Syslog daemons.
+It is also possible to log asynchronously.
+<br />
+More than one appender can be attached to a logger.<br />
+<br />
+[...]<br />
+<br />
+Each enabled logging request for a given logger will be forwarded
+to all the appenders in that logger as well as the appenders higher
+in the hierarchy. In other words, appenders are inherited additively
+from the logger hierarchy. For example, if a console appender is added
+to the root logger, then all enabled logging requests will at least print
+on the console.
+</blockquote>
+
+<p>That means you have to clearly define your hierarchy and decide
+for each one of the 500 logger where you want the data to go, at the
+source code level. This is a lot of complexity, for which purpose?
+May be the answer is obvious for a "space shuttle developper", but not for me
+(don't forget, "I am dumb").
+</p>
+
+<blockquote>
+Most real-world systems have to deal with multiple clients simultaneously.
+In a typical multithreaded implementation of such a system, different threads
+will handle different clients. Logging is especially well suited to trace and
+debug complex distributed applications. A common approach to differentiate the
+logging output of one client from another is to instantiate a new separate
+logger for each client. This promotes the proliferation of loggers and
+increases the management overhead of logging.
+</blockquote>
+
+<p>The idea of instantiating one logger per thread is interesting, but
+unfortunately there is no clue about of to easily do that, and how to
+easily say a class instance to use this particular logger instead of its
+global static one. I do not see any help of log4cxx regarding this point,
+so I guess this is a question each developper has to answer. I think
+a good logging library should not do this, and propose an easy solution
+to this "real-world" problem.
+</p>
+
+<p>Anyway. Imagine I need 10 different adapters. So, each time I log a message,
+log4cxx will forward my message to each adapter. Gasp, what about the
+performance?
+</p>
+
+<blockquote>
+<b>The performance of deciding whether to log or not to log when logging is turned on.</b><br />
+<br />
+This is essentially the performance of walking the logger hierarchy.
+When logging is turned on, log4j still needs to compare the level of
+the log request with the level of the request logger. However, loggers
+may not have an assigned level; they can inherit them from the logger
+hierarchy. Thus, before inheriting a level, the logger may need to
+search its ancestors.
+<br />
+There has been a serious effort to make this hierarchy walk to be as fast
+as possible. For example, child loggers link only to their existing ancestors.
+In the BasicConfigurator example shown earlier, the logger named com.foo.Bar
+is linked directly to the root logger, thereby circumventing the nonexistent
+com or com.foo loggers. This significantly improves the speed of the walk,
+especially in "sparse" hierarchies.
+<br />
+The typical cost of walking the hierarchy is typically 3 times slower than
+when logging is turned off entirely.
+</blockquote>
+
+<blockquote>
+More often than not, users wish to customize not only the output destination
+but also the output format. This is accomplished by associating a layout with
+an appender. The layout is responsible for formatting the logging request
+according to the user's wishes, whereas an appender takes care of sending the
+formatted output to its destination.
+</blockquote>
+
+
+<h4>Nested Diagnostic Contexts</h4>
+
+<blockquote>
+A lighter technique is to uniquely stamp each log request initiated from the same client interaction. Neil Harrison described this method in the book "Patterns for Logging Diagnostic Messages," in Pattern Languages of Program Design 3, edited by R. Martin, D. Riehle, and F. Buschmann (Addison-Wesley, 1997).
+
+To uniquely stamp each request, the user pushes contextual information into the NDC, the abbreviation of Nested Diagnostic Context.
+
+The NDC is managed per thread as a stack of contextual information. Note that all methods of the log4cxx::NDC class are static. Assuming that NDC printing is turned on, every time a log request is made, the appropriate log4cxx component will include the entire NDC stack for the current thread in the log output. This is done without the intervention of the user, who is responsible only for placing the correct information in the NDC by using the push and pop methods at a few well-defined points in the code. In contrast, the per-client logger approach commands extensive changes in the code.
+
+To illustrate this point, let us take the example of a servlet delivering content to numerous clients. The servlet can build the NDC at the very beginning of the request before executing other code. The contextual information can be the client's host name and other information inherent to the request, typically information contained in cookies. Hence, even if the servlet is serving multiple clients simultaneously, the logs initiated by the same code, i.e. belonging to the same logger, can still be distinguished because each client request will have a different NDC stack. Contrast this with the complexity of passing a freshly instantiated logger to all code exercised during the client's request.
+
+Nevertheless, some sophisticated applications, such as virtual hosting web servers, must log differently depending on the virtual host context and also depending on the software component issuing the request. Recent log4cxx releases support multiple hierarchy trees. This enhancement allows each virtual host to possess its own copy of the logger hierarchy.
+</blockquote>
+
+"create a need you don't have"
+
+</body>
+</html>

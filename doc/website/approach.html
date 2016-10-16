@@ -1,0 +1,188 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+http://www.urbandictionary.com/define.php?term=log+roll
+http://en.wikipedia.org/wiki/Logrolling
+http://en.wikipedia.org/wiki/Log_rolling
+http://en.wikipedia.org/wiki/Wooden_log
+
+<h3>A simple and stupid logging library for non space shuttle developers!</h3>
+
+<h3>The philosophy behind LogRoller<h3>
+<p>
+LogRoller is not really a simple logging tool.
+It is a little more about that, it is a concept.
+Well, okay, it is not really a concept neither,
+let's say it is a particular conception of logging.
+</p>
+
+<h3>Logging, logging... For what? For whom?</h3>
+
+<p>The fundamental concept behind LofRoller is to make it easy
+to log, from a code writing point of view.
+Logging some text should be really easy, and it should be done
+in a way that improve the readability of a source code, not the
+oposite.
+</p>
+
+<p>What is readability? Readability is quite a subjective concept.
+For a given code, some one will find it readable while an other one
+will insult its author. That's why LogRoller has been developped
+in such a way it is easy to use yout own macro toolset, because
+they are the one which fits the best your readability critereas.
+For example, people will find that a very short macro name in
+lower case (<tt>log()</tt>) is much readable than a long one in
+upper case (<tt>LOGROLLER_TRACE()</tt>). Others don't care and will
+be very happy with the default macros provided (<tt>log_trace</tt>). 
+</p>
+
+<p>However, there is some common conception of readability, and one
+of them is to use comments. Comments are also useful because most of
+the time they are printed in a different color in your prefered
+development editor, giving some color to your code, which helps
+to make it mode readable.
+</p>
+
+<pre>
+char* Pool::AllocMemory(size_t Size)
+{
+    if ( Size == 0 )
+    {
+        // can not alloc 0 byte!
+        return 0;
+    }
+    if ( this->FreeSize() &lt; Size )
+    {
+        // sorry, not enougth memory!
+        return 0;
+    }
+    // ok, there is enought memory in the pool
+    // allocate Size byte(s)
+    char *begining = this->LastUsedByte + 1;
+    this->LastUsedByte += Size;
+    return begining;
+}
+</pre>
+
+<p>A very personnal opinion is that comments can be replaced with
+logging. I even thing that a well suited logging API can make the
+code more readable than simple comments. Because literal strings
+are also colored in a special color, and also because it is often
+possible to customize your favorite editor to highlight special
+words in a particular color, making it possible to emphasis the
+use of logging macros:
+</p>
+
+<pre>
+char* Pool::AllocMemory(size_t Size)
+{
+    if ( Size == 0 )
+    {
+        log_error() &lt;&lt; "can not alloc 0 byte!";
+        return 0;
+    }
+    if ( this->FreeSize() &lt; Size )
+    {
+        log_trace() &lt;&lt; "sorry, not enougth memory!";
+        return 0;
+    }
+    // ok, there is enought memory in the pool
+    log_trace() &lt;&lt; "allocate " &lt;&lt; Size &lt;&lt; " byte(s)";
+    char *begining = this->LastUsedByte + 1;
+    this->LastUsedByte += Size;
+    return begining;
+}
+</pre>
+
+<p>In the above example, we use a set of 2 macros to give more information
+about the behaviour of the code. <tt>log_trace</tt> is use for the normal
+execution flow, and <tt>log_error</tt> to signal an error.
+In this example, we return twice a null pointer, which is from the caller
+point of view a failure. But we are inside the function <tt>AllocMemory()</tt>,
+and returning a null pointer because we don't have enought memory is part
+of the normal execution flow. We successfully exit the function by returning
+a null pointer. The caller can expect this behaviour, and he is the only one
+who can decide if it is an error or not. If he thinks he should not be given
+a NULL pointer because he managed the pool in such a way he should have
+enought memory, he may log an error. But from the <tt>AllocMemory()</tt> point
+of view, it is a normal behaviour to fail to allocate the asked memory.
+</p>
+
+<p>However, <tt>AllocMemory()</tt> considers it should never been asked to alloc
+0 byte. It is considered as a logic error, and it should not happen.
+In certain condition, such a demand could trigger an assertion failure,
+but it not applicable here as the function has to be robust even in release.
+The programmer could have decided to raise an exception
+(of type <tt>std::logic_error</tt> for example), but for some reason he decided
+to report the logic error as a simple memory allocation failure. So the origin of
+the failure of <tt>AllocMemory()</tt> is lost and the caller has no way to know
+its because he made a mistake.
+</p>
+
+<h3>What is good logging?</h3>
+
+<p>Most of the time, when people discuss about logging,
+they fight about the better way to output the information.
+Some people think it should be send to the debugger, others
+to the console, others to a plain text file, or to format it
+in html, or in xml, etc.
+</p>
+
+<p>The idea behind LogRoller is the following: forget the output,
+it is a detail, not the main point. The main problem
+in logging information is getting the information to log, not saving
+and formatting it. And the core part of LogRoller is precisely
+designed to answer this main problem. It focuses on getting
+the information to log, not on outputing it. In fact, the core part
+of LogRoller does not output anything. It just saves the data in memory.
+This data is then collected and analysed by an optional additional
+software, which will format the output the way which
+better fits your need.
+So, let's talk about getting the information to log.
+</p>
+
+<p>The goal of LogRoller is to motivate the programmer to give
+information to log. Several points have been taken in consideration
+to make him to like giving log messages to LogRoller. In particular,
+the following point:
+</p>
+
+<ul>
+<li>Use the standard "C++ way" as much as possible, because we only
+target the C++ audience, and many C++ programmers don't like to use
+libraries writen in a typical C way</li>
+<li>Do not lower the readability of the code, but try to improve it if possible</li>
+<li>Make the user fell comfortable with the syntax and make
+it easy to customize to avoid the "Not Implemented Here" syndrom</li>
+<li>Optimize the typical default usage of logging in order
+not to worry the developper about the overhead of logging</li>
+<li>Make it easy to integrate and compile</li>
+</ul>
+
+<p>As a result:
+</p>
+
+<ul>
+<li>LogRoller is based on standard C++ stream to collect and
+format the text to log (like <tt>std::cout</tt> for example).
+We also think, from a C++ developer point of view, that it help
+to make the code more readable by eliminating the need of brackets
+like with the <tt>printf</tt> way. It also make it possible to use
+manipulators from <tt>&lt;iomanip&gt;</tt>, eliminating the need
+to learn a new syntax if you already know C++, and being compatible
+with your own <tt>operator&lt;&lt;</tt> you have already writen
+and like to use.</li>
+<li>LogRoller uses several C++ tricks to make a typical logging
+operation <i>very</i> fast, and <i>very</i> low memory consuming.
+Such a typical operation is for
+example not impacted by the length of the given string.
+To read more about this, go to the performance details page.</li>
+<li>LogRoller core is written in fully standard C++, and does not
+have any external dependencies. It has been developped with 32bit
+and 64bit architectures in mind.</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+body {font-size:.75em; font-family:arial,helvetica; margin:0; padding:0;}
+body{
+margin: 0 3.4em;
+
+			font-family: Lucida Grande, Tahoma, Arial, Helvetica, sans-serif; /* Lucida Grande for the Macs, Tahoma for the PCs */
+font-size: 11px;
+			line-height: 1.6em;
+			color: #666;
+}
+
+h1,h2,h3,h4,h5,h6 {font-weight:bold; text-decoration:none;}
+h1,h2,h3 {padding-bottom:1px; margin-top:1.2em;margin-bottom:0.3em;}
+h4,h5,h6 {margin-top:1em;}
+h1 {font-size:1.35em;}
+h2 {font-size:1.25em;}
+h3 {font-size:1.1em;}
+h4 {font-size:1em;}
+h5 {font-size:.9em;}
+
+.header {position:relative;}
+.header a:hover {background:transparent;}
+.headerShadow {position:relative; padding:4.5em 0em 1em 1em; left:-1px; top:-1px;}
+.headerForeground {position:absolute; padding:4.5em 0em 1em 1em; left:0px; top:0px;}
+
+.siteTitle {font-size:3em;}
+.siteSubtitle {font-size:1.2em;}
+
+.header {background:#04b;}
+.headerShadow {color:#000;}
+.headerShadow a {font-weight:normal; color:#000;}
+.headerForeground {color:#fff;}
+.headerForeground a {font-weight:normal; color:#8cf;}
+
+.header {
+ background: #fff; 
+			padding-top: 10px;
+			clear: both;
+
+border-bottom: 4px solid #948979;
+}
+
+.headerShadow {	padding: 2.6em 0em 0.5em 0em; }
+
+.siteTitle {
+			font-family: 'Trebuchet MS' sans-serif;
+			font-weight: bold;
+			font-size: 32px;
+			color: #CC6633;
+			margin-bottom: 30px;
+			background-color: #FFF;
+}
+
+.siteTitle a{color:#CC6633; border-bottom:1px dotted #cc6633;}
+
+.siteSubtitle {
+	font-size: 1.0em;
+        display: block;
+        margin: .5em 3em; color: #999999;
+}
+
+ #contentWrapper{
+margin: 0 3.4em;
+
+			font-family: Lucida Grande, Tahoma, Arial, Helvetica, sans-serif; /* Lucida Grande for the Macs, Tahoma for the PCs */
+font-size: 11px;
+			line-height: 1.6em;
+			color: #666;
+}
+
+.viewer blockquote {line-height:1.5em; padding-left:0.8em;margin-left:2.5em;}
+.viewer blockquote {border-left:3px solid #666;}
+.viewer blockquote {
+	border-left: 3px solid #948979;
+}
+
+#displayArea {margin:1em 17em 0em 14em;}
+.imageLink, #displayArea .imageLink {background:transparent;}
+#displayArea {
+	margin: 0em 17em 0em 15em;
+}
+
+#mainMenu .tiddlyLinkExisting,
+	#mainMenu .tiddlyLinkNonExisting,
+	#sidebarTabs .tiddlyLinkNonExisting {font-weight:normal; font-style:normal;}
+#sidebarTabs .tiddlyLinkExisting {font-weight:bold; font-style:normal;}
+
+
+#mainMenu {position:absolute; left:0; width:10em; text-align:right; line-height:1.6em; padding:1.5em 0.5em 0.5em 0.5em; font-size:1.1em;}
+
+#mainMenu {
+position:relative;
+float:left;
+margin-bottom:1em;
+display:inline;
+text-align:left;
+padding: 2em 0.5em 0.5em 0em;
+width:13em;
+font-size:1em;
+}
+
+		#mainMenu a {
+			display: block;
+			padding: 5px;
+			border-bottom: 1px solid #CCC;
+		}
+
+		#mainMenu a:link, #navlist a:visited {
+			color:#CC6714;
+			text-decoration: none;
+		}
+		
+		#mainMenu a:hover {
+			background: #000000 url(arrow.gif) 96% 50% no-repeat;
+			background-color: #F5F5F5;
+			color:#CC6714;
+		}
+		
+		#mainMenu a:hover, #mainMenu a:active, #mainMenu .highlight, #mainMenu .marked {
+			background: #000000 url(arrow.gif) 96% 50% no-repeat;
+			background-color: #F5F5F5;
+			color:#CC6714;
+		}
+
+#mainMenu span {position:relative;}
+
+#mainMenu br {display:none;}
+
+#mainMenu #noticeBoard a,#mainMenu #noticeBoard .tiddlyLink {display:inline;border:none;padding:5px 2px;color:#DF9153 }
+
+.tiddlyLinkExisting {font-weight:bold;}
+.tiddlyLinkNonExisting {font-style:italic;}
+
+/* the 'a' is required for IE, otherwise it renders the whole tiddler in bold */
+a.tiddlyLinkNonExisting.shadow {font-weight:bold;}
+
+
+
+
+
+h1.siteTitle {font-size:3em;}
+h1.siteTitle {
+			font-family: 'Trebuchet MS' sans-serif;
+			font-weight: bold;
+			font-size: 32px;
+			color: #CC6633;
+			margin-bottom: 30px;
+			background-color: #FFF;
+}
+
+.header {
+      background: #fff; 
+      padding-top: 10px;
+      clear: both;
+      border-bottom: 4px solid #948979;
+}
+
+blockquote {line-height:1.5em; padding-left:0.8em;margin-left:2.5em;}
+blockquote {border-left:3px solid #666;}
+blockquote {
+	border-left: 3px solid #948979;
+}

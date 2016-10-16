@@ -1,0 +1,315 @@
+<?php
+$phpinc = $_SERVER["DOCUMENT_ROOT"] . '/../phpinc';
+$smartydata = $_SERVER["DOCUMENT_ROOT"] . '/../smartydata';
+
+require_once("$phpinc/geshi.php");
+require_once("$phpinc/smarty/Smarty.class.php");
+
+// init GeSHi
+$geshi = new GeSHi();
+$geshi->set_language('cpp');
+$geshi->set_header_type(GESHI_HEADER_PRE_VALID);
+$geshi->enable_classes();
+$geshi->enable_line_numbers(GESHI_NORMAL_LINE_NUMBERS);
+$geshi->set_overall_style('color: #0f0f0f; border: 1px solid #d0d0d0; background-color: #f8f8f8; width: 60em;', true);
+$geshi->set_line_style('font: \'Courier New\', Courier, monospace;', 'font-weight: bold;', true);
+
+// init Smarty
+$smarty = new Smarty();
+$smarty->setTemplateDir("$smartydata/templates");
+$smarty->setCompileDir("$smartydata/templates_c");
+$smarty->setCacheDir("$smartydata/cache");
+$smarty->setConfigDir("$smartydata/configs");
+
+// header
+$smarty->assign('css', $geshi->get_stylesheet(true));
+$smarty->assign('title', 'Lazy logging en C/C++');
+$smarty->assign('subtitle', 'Eléments d\'une syntaxe conviviale');
+$smarty->assign('datetime', '2012');
+$smarty->assign('articletime', 'Novembre 2012');
+$smarty->display('header.tpl');
+?>
+
+<p>La possibilité d'ajouter à la suite de notre macro un nombre variables d'arguments
+est un élément important d'une syntaxe conviviale :
+</p>
+<pre>
+log_info("Hello") &lt;&lt; " World" &lt;&lt; '!';
+</pre>
+<p>Sachant que nous ne sommes pas satisfait de l'approche classique qui consiste à utiliser
+un double parenthésage au sein même de la macro :</p>
+<pre>
+log_info(("Hello" &lt;&lt; " World" &lt;&lt; '!'));
+</pre>
+
+<p>mettre en oeuvre de manière fiable la syntaxe souhaitée pose un challenge technique,
+notament à cause du cas d'utilisation suivant :</p>
+<pre>
+void test_macro(int n)
+{
+    if (n == 0)
+       log_info("n est nul\n");
+    else
+        log_info("n == ") &lt;&lt; n &lt;&lt; "\n";
+    
+    for (int i = 0; i &lt; n; ++i)
+        log_info("i = ") &lt;&lt; i &lt;&lt; "\n";
+}
+</pre>
+<p>C'est un problème classique lié à l'utilisation des macros : celui de leur appel depuis un <tt class="keyw">if</tt>.</p>
+<p>Si l'on respecte les recommandations à ce sujet, notre macro devra ressembler à ceci :</p>
+<pre>
+#define log_info(msg)\
+    if (false) {} else { static const char info[] = msg __FILE__; std::cout &lt;&lt; msg; }
+</pre>
+<p>Cette approche sécurise bien l'utilisation de notre macro, mais est incompatible avec
+le chaînage des arguments (comme pour afficher les valeurs de <tt>n</tt> et <tt>i</tt>
+ci-dessus).</p>
+<p>A l'inverse, ne pas suivre ces recommandations comme dans cet exemple :</p> 
+<pre>
+std::ostream & print_log_info(const char * log_info);
+
+#define log_info(msg)\
+    static const char info[] = msg "\0" __FILE__ "\0" __FUNCTION__;\
+    print_log_info(info)
+
+if (n == 0)
+    log_info("n est nul");
+</pre>
+<p>va produire une erreur de compilation car elle sera expansée ainsi :<p>
+<pre>
+if (n == 0)
+    static const char info[] = "n est nul" "\0" __FILE__ "\0" __FUNCTION__;
+print_log_info(info);
+</pre>
+<p>Ce qui restreint la portée de <tt>info</tt> au <tt class="keyw">if</tt> et cause donc une erreur de compilation
+à la ligne suivante.</p>
+<p>On peut alors être tenté de tout simplifier ainsi :</p>
+<pre>
+#define log_info(msg)\
+    print_log_info( msg "\0" __FILE__ "\0" __FUNCTION__ )
+
+if (n == 0)
+    log_info("n est nul");
+else
+    log_info("n = ") &lt;&lt; n;
+</pre>
+<p>Mais on perd alors la possibilité de placer notre message dans la section de notre choix.
+Pour conserver cette possibilité, nous somme obligés de d'abord déclarer notre message en <tt class="keyw">static</tt>,
+et c'est là la source de nos difficultés.</p>
+<p>En explorant les solutions possibles, j'ai d'abord été très enthousiaste de découvrir que la syntaxe
+suivante fontionne sous Visual C++ 2010 :</p>
+<pre>
+#pragma section(".logindx", read)
+
+if (__declspec(allocate(".logindx"))
+    static const char log_info[] = "Hello World!" "\0" __FILE__ "\0" __FUNCTION__
+    )
+    print_log_info(log_info) &lt;&lt; " World!\n";
+</pre>
+<p>Etrangement, alors le compilateur accepte cette syntaxe sans sourciller, l'Intellisense de l'éditeur
+s'en plaint :</p>
+<img src="vc2010.png" />
+<p>Et MingW vient confirmer que cette syntaxe n'est pas légale : <tt class="keyw">static</tt> n'est pas autorisé
+dans une expression <tt class="keyw">if</tt>.</p>
+<p>Par contre, la norme l'autorise dans une expression <tt class="keyw">for</tt> :</p>
+<pre>
+    for (static const char log_info[] = "Hello" "\0" __FILE__ "\0" __FUNCTION__;
+         ;
+         )
+         print_log_info(log_info) &lt;&lt; " World!";
+</pre>
+<p>Mais cela empêche de déclarer une seconde variable locale (non statique) nécessaire au contrôle de la structure <tt class="keyw">for</tt>
+(qui ne doit s'exécuter qu'une seule fois). Heureusement il est possible de s'en sortir
+en déclarant cette variable dans un <tt class="keyw">if</tt> supérieur, ce qui au passage nous permet de protéger
+notre macro comme le recommande les bonnes pratiques :</p>
+<pre>
+    if (bool logged = false) {}
+    else for (static const char log_info[] = "Hello" "\0" __FILE__ "\0" __FUNCTION__;
+              logged == false;
+              logged = true)
+              print_log_info(log_info) &lt;&lt; " World!";
+</pre>
+<p>Le <tt class="keyw">if</tt> cumule ainsi deux fonctions indépendantes, ce qui est généralement le signe d'un design efficace.</p> 
+<p>Nous pouvons donc rédiger notre macro finale :</p>
+<pre>
+class ostream_wrapper
+{
+public:
+    ostream_wrapper(std::ostream & s) : s_(s)
+    {
+    }
+    
+    ~ostream_wrapper()
+    {
+        s_ &lt;&lt; "\n";
+    }
+    
+    template&lt;typename T&gt;
+    ostream_wrapper & operator&lt;&lt;(T t)
+    {
+        s_ &lt;&lt; " " &lt;&lt; t;
+        return *this;         
+    }
+    
+private:
+    ostream_wrapper s_;
+};
+
+ostream_wrapper print_log_info(const char * log_info);
+
+#define log_info(msg)\
+        if (bool logged = false) {}\
+        else for (PLACE_IN_LOGROLLER_SECTION(static const char log_info[]) =\
+                      msg "\0" __FILE__ "\0" __FUNCTION__;\
+                  logged == false;\
+                  logged = true)\
+                  print_log_info(log_info)
+
+void test_macro(int n)
+{
+    if (n == 0)
+        log_info("n est nul");
+    else
+        log_info("n == ") &lt;&lt; n;
+
+    for (int i = 0; i &lt; n; ++i)
+        log_info("* i == ") &lt;&lt; i;
+}
+
+ostream_wrapper print_log_info(const char * log_info)
+{
+    size_t offset = 0;
+    string logMessage = &log_info[offset];
+    
+    offset += logMessage.size() + 1; 
+    string fileName = &log_info[offset];
+    
+    offset += fileName.size() + 1; 
+    string functionName = &log_info[offset];
+    
+    cout &lt;&lt; "(" &lt;&lt; fileName &lt;&lt; ") ["
+        &lt;&lt; functionName &lt;&lt; "] "
+        &lt;&lt; logMessage;
+        
+    return ostream_wrapper(std::cout); 
+}
+
+int main(int argc, char **argv)
+{
+    test_macro(0);
+    test_macro(1);
+    test_macro(2);
+}
+</pre>
+<p>Qui fonctionne parfaitement et n'est source d'aucun warning même en niveau maximum.</p>
+<p>Du côté des performances, comme on pouvait l'anticiper, le compilateur est parfaitement
+capable de supprimer la structure du <tt class="keyw">if</tt> et du <tt class="keyw">for</tt> pour appeler directement
+<tt>print_log_info()</tt> (lorsque l'optimisation du code est activée). En clair, il n'y a absolument
+aucun surcoût (en Release) à protéger ainsi l'utilisation de la macro.</p>
+
+<h3>Détecter si une chaîne est littérale à partir de son adresse (C/C++)</h3>
+
+<p>Nous avons vu que les chaînes littérales sont stockées dans une section bien spécifique du conteneur exécutable.
+Il est tout à fait possible de localiser dynamiquement où elle se trouve précisément en mémoire. A partir de là,
+déterminer si une chaîne (ou n'importe quelle donnée initialisée en fait) est contenue dans l'exécutable ou non
+est très facile : cela se réduit à deux comparaisons de l'adresse de cette chaîne, avec l'adresse de début et l'adresse
+de fin de la section en mémoire.</p>
+<p>Cette méthode est très fiable car on est alors certain que l'adresse référencée est consultable ultérieurement.
+En revanche, il n'y a pas de façon portable d'implémenter cela car la méthode est spécifique à chaque type de format
+d'exécutable (PE pour Windows, ELF pour Linux, MachO pour MacOS X).</p>
+
+<h3>Détecter si une chaîne est littérale grace aux templates (C++ uniquement)</h3>
+<p>Une chaîne littérale étant un tableau de char dont la longueur est connue lors de la compilation, il est possible
+d'en connaître la longueur grâce à la déduction automatique des arguments des templates :
+</p>
+<pre>
+template&lt;typename T, size_t N&gt;
+inline size_t length_of(T (&arr)[N])
+{
+    return N;
+}
+
+size_t n = length_of("12345"); // n == 6
+</pre>
+
+<p>Les programmeurs C savent obtenir la même information via <tt class="keyw">sizeof</tt> :</p>
+<pre>
+#define length_of(str) sizeof(str) / sizeof(*str)
+
+size_t n = length_of("12345"); // n == 6
+</pre>
+<p>Malheureusement cette approche ne permet pas de distinguer un pointeur sur une chaîne de caractère
+d'une chaîne littérale passée directement :
+<pre>
+#define length_of(str) sizeof(str) / sizeof(*str)
+
+const char *str = "12345";
+size_t n = length_of("str"); // n == 4
+</pre>
+<p>En effet, sur une machine 32 bits, <tt class="keyw">sizeof(const char *)</tt> renvoie 4.</p>
+<p>A l'inverse, la surcharge de fonctions en C++ permet de dsitinguer les deux cas d'appel :</p>
+<pre>
+template&lt;size_t N&gt;
+void length_of(const char (&str)[N])
+{
+    cout &lt;&lt; "Litteral, length = " &lt;&lt; N &lt;&lt; "\n";
+}
+
+void length_of(const char *&str)
+{
+    cout &lt;&lt; "Non litteral, length = " &lt;&lt; strlen(str) + 1 &lt;&lt; "\n";
+}
+
+int main(int argc, char **argv)
+{
+    length_of("12345");
+
+    const char *str = "12345";
+    length_of(str);
+
+    const char str2[] = "12345";
+    length_of(str2);
+}
+</pre>
+<pre>Litteral, length = 6
+Non litteral, length = 6
+Litteral, length = 6</pre>
+
+<p>Malheureusement, comme l'exemple ci-dessus le montre, un tableau local initialisé sur la pile sera
+un bon candidat pour la version template. Et parce que son contenu se trouve sur la pile, il sera perdu
+dès que la fonction se terminera. Dans ce cas précis, logger l'adresse de la chaîne de caractère serait
+un problème, car il serait impossible de récupérer sa valeur ultérieurement.</p>
+<p>Mais un tel cas d'utilisation reste rare, surtout si la variable est constante. En général, elle ne l'est pas :</p>
+<pre>
+template&lt;size_t N&gt;
+void length_of(const char (&str)[N])
+{
+    cout &lt;&lt; "Litteral, length = " &lt;&lt; N &lt;&lt; "\n";
+}
+
+template&lt;size_t N&gt;
+void length_of(char (&str)[N])
+{
+    cout &lt;&lt; "Non litteral, length = " &lt;&lt; N &lt;&lt; "\n";
+}
+
+int main(int argc, char **argv)
+{
+    length_of("12345");
+
+    char str[] = "12345";
+    length_of(str);
+}
+</pre>
+<pre>
+Litteral, length = 6
+Non litteral, length = 6
+</pre>
+<p>Cette approche, bien qu'imparfaite, reste donc intéressante car elle est simple et portable. Elle constitue
+une alternative acceptable à la détection à partir de l'adresse.</p>
+
+<?php
+// footer
+$smarty->display('footer.tpl');
+?>

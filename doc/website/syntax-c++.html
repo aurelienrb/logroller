@@ -1,0 +1,211 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<h3>Choosing a logging syntax in C++</h3>
+
+<img src="images/291498_integral_calculations.jpg" width="150" heigh="100" />
+
+<p>I found many many various logging libraries or C++, but I didn't find a smuch
+ways to write a log request. There is, in fact, only 2 known principle way to do it:
+</p>
+
+<img src="images/617303_sack_racer.jpg" width="150" heigh="112" />
+
+<h3>The standard function syntax</h3>
+
+<h4>The printf way</h4>
+
+<p>One of the most used syntax is a syntax similar to the standard C 
+function printf. The C and C++ languages allows a function to have a variable
+number of parameters. To do this, you use an ellipsis, as in the following example:
+</p>
+
+<pre>void log( const char *Format, ... );
+</pre>
+
+<p>This is the very tipical way to do it. The first parameter (which is mandated
+by the langage in order to use an ellipsis) is used to tell the function log
+2 things: the number of parameters, and the type of each of them.
+</p>
+
+<p>Such a log fucntion could be use, for example, like this:
+</p>
+
+<pre>void Test( const char * Msg )
+{
+    log( "Message from file %s, line %d: %s", __FILE__, __LINE__, Msg );
+}
+</pre>
+
+<p>In its implementation, the log function will use some special macros
+(varrag, valist) to iterate over the list of given parameters.
+There is no way, at the language level, to know how many parameters
+were given, not the type of each of them. So, the log fucntion has
+no other choice than to trust the caller who tells her that there is
+a first parameter of type string (%s), and a second one of type integer (%d). 
+</p>
+
+<p>Note that the "string type" is in the C way, i.e a null terminated char array.
+If the programmer changes his function prototype to the following:
+</p>
+
+<pre>void Test( const std::string & Msg )
+{
+    log( "Message from file %s, line %d: %s", __FILE__, __LINE__, Msg );
+}
+</pre>
+
+<p>whithout modifying the logging request, the code will still compile.
+But an error may occur at run-time, as the log function will blindly
+cast the given std::string to a const char *, and try to print it.
+</p>
+
+<p>An other very stupid example is when you want to modify the order
+of the outputed parameters, and forget to synchronise the format string
+with the parameters list:  
+</p>
+
+<pre>void Test( const char * Msg )
+{
+    log( "Message: %s [file %s, line %d]", __FILE__, __LINE__, Msg );
+}
+</pre>
+
+<p>So, in C++, no need to say I totally and completly disagree with this
+approach, because there are, in my opinion, so much problems with it:
+</p>
+
+<ul>
+<li>It is error prone, in particular for the beginners</li>
+<li>It introduce the concept of manual typing at the logging message,
+which is completely undesired and useless in C++ (pollution)</li>
+<li>It obliges you to learn a formatting syntax, which is cryptic
+for some people</li>
+<li>It obliges you to remember and pay real attention to this formatting
+syntax when you try to concentrate on the logging message (pollution)</li>
+<li>It is very difficult to extend (add a new letter for a particular type)</li>
+<li>The default printf supported types are not adapted to modern C++ types
+(std::string, ...)</li>
+</li>
+</ul>
+
+<p>From my point of view, there are so many pitfalls with this syntax that
+I really don't understand why some C++ logging library designers 
+still decide to use it. If you are a well experienced C developper, all the
+above might sound ridiculous for you. But don't forget that there is not
+only C specialists on earth, there are also "dumb programmers".
+</p>
+
+<h4>The C++ way</h4>
+
+<p>People who developped C++ also thought the printf syntax was an issue,
+and they introduced the C++ stream syntax and the cout object.
+The C++ way to print a message if to use cout, not printf.
+The C++ way to format an output is through C++ streams operators, not varargs.
+That is C++, that's what make some people love C++, and that's what most
+of the C++ developper expect to find when they have to deal with message
+output. It is much safer, much simpler to use, much more extensible, and
+is is how "real" C++ code is supposed to look like.
+</p>
+
+<pre>void Test( const std::string & Msg )
+{
+    log &lt;&lt; "Message from file " &lt;&lt; __FILE__
+        &lt;&lt; ", line " &lt;&lt; __LINE__ 
+        &lt;&lt; ": ", Msg;
+}
+</pre>
+<p>The use of <em>operator&lt;&lt;</em> for serializing an object in an ostream
+is a kind of convention that people are free to adopt, or not. Let's take the
+example of a user defined object that need to be serialized:  
+</p>
+
+<pre>class A
+{
+};
+</pre>
+
+<p>Some development teams will prefer to code a <em>ToString()</em> function:  
+</p>
+
+<pre>std::string ToString( const A & );
+
+void Test()
+{
+    A a;
+    std::cout &lt;&lt; ToString( a );
+}
+</pre>
+
+<p>While others will find the <em>operator&lt;&lt;</em> convenient:  
+</p>
+
+<pre>std::ostream & operator&lt;&lt;( std::ostream &, const A & );
+
+void Test()
+{
+    A a;
+    std::cout &lt;&lt; a;
+}
+</pre>
+
+<p>If the first group of people may not really care about the way to
+format their own objects, the other ones will expect from a C++ logging
+library to give them the ability to output all the object for those they
+wrote a correct <em>operator&lt;&lt;</em> whithout having to modify a single
+line of code. For me, it is another major key point both in favor of the use
+of C++ streams and against the use of the printf syntax, because
+a logging library should not assert she will be used in a "project
+developped from scratch".
+</p>
+
+<p>There are many other possibilities to implement an object serialization,
+but it is reasonable to consider that many of them expect to be serialized
+on a standard C++ object, mostly an std::ostream (like cout).
+Let's take a real life example: VTK. VTK is a big C++ library, of more
+than 700 classes. Many of this objects inherit from the root class
+vtkObjectBase, which defines a couple of virtual functions dedicated
+to serialization:
+</p>
+
+<pre>  // Description:
+  // Print an object to an ostream. This is the method to call
+  // when you wish to see print the internal state of an object.
+  void Print(ostream& os);
+
+  // Description:
+  // Methods invoked by print to print information about the object
+  // including superclasses. Typically not called by the user (use
+  // Print() instead) but used in the hierarchical print process to
+  // combine the output of several classes.
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintHeader(ostream& os, vtkIndent indent);
+  virtual void PrintTrailer(ostream& os, vtkIndent indent);
+</pre>
+
+<p>And vtkObjectBase also declare an operator&lt;&lt; on top of this
+function so you can easily output a vtk class on cout, or on your log
+library if you designed it in order it works with C++ streams.
+</p>
+
+<p>This is a concrete, real life example of the benefits to use the
+C++ way when you develop in C++. If your logging library uses C++ streams,
+it becomes completely compatible with hundreds classes of VTK, whithout
+having to write a single line of code. "It just works".
+That's "what simplicity means" here. In my opinion, a logging library which
+can't work directly with VTK can not claim to be simple of use.
+</p>
+
+
+<p>If you want to log a particu 
+</p>
+
+<h4></h4>
+
+<p>
+</p>
+
+</body>
+</html>

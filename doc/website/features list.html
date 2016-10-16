@@ -1,0 +1,125 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Logging features list</h3>
+
+<img src="images/868762_jigsaw.jpg" width="150" heigh="112" />
+
+<b>source code features</b>
+<ul>
+<li>need initialisation call</li>
+<li>scope logging</li>
+<li>UNICODE support</li>
+<li>Blob support</li>
+<li>exception safe library</li>
+<li>make sur the logging requests never throw an exception</li>
+<li>if a logging requests throws an exception, the logging request already
+competed is still saved</li>
+<li>automatically collects __FILE__, __LINE__ and __FUNCTION__</li>
+</ul>
+
+<b>documentation</b>
+
+<b>filtering</b>
+<ul>
+<li>filtering can be done at compile time with macros</li>
+<li>filtering can be done at compile time without macros</li>
+<li>filtering can be done at runtime</li>
+<li>filtering can be done via message levels</li>
+<li>filtering can be done via message type</li>
+<li>filtering can be done via message location (source file name...)</li>
+<li>filtering can be done via regular expressions</li>
+<li>filtering can be customized</li>
+<li></li>
+</ul>
+
+<b>log files</b>
+<ul>
+<li>automatically generate a log file name</li>
+<li>Ability to output the log messages in different files depending on their type
+(error.log, warning.log, ...)</li>
+<li>generated log file name does not conflict if several instances of
+the same program are running</li>
+</ul>
+
+<b>log output and formatting</b>
+<ul>
+<li>can send the log messages to different output at the same type (multiplexed output)</li>
+<li>possibility to give its own output type</li>
+<li>possibility to format data in a custom way</li>
+</ul>
+
+<b>output types already provided</b>
+<ul>
+<li>file</li>
+<li>socket</li>
+<li>pipe</li>
+<li>database</li>
+<li>debugger</li>
+<li>shared memory</li>
+</ul>
+
+<b>formatting format already provided</b>
+<ul>
+<li>plain text</li>
+<li>html</li>
+<li>xml</li>
+<li>syslog</li>
+<li>binary</li>
+</ul>
+
+<b>macros</b>
+<ul>
+<li>library has been designed to be usable without macros</li>
+</ul>
+
+<b>multithreading</b>
+<ul>
+<li>pthread</li>
+</ul>
+
+<b>runtime configuration</b>
+
+<b>supported compilers</b>
+<ul>
+<li></li>
+</ul>
+
+<b>supported platforms</b>
+<ul>
+<li>optimized for 32bit architecture</li>
+<li>optimized for 64bit architecture</li>
+</ul>
+
+<b>license</b>
+
+<b>usable in C</b>
+
+<b>COMPILATION AND INSTALLATION</b>
+<ul>
+<li>minimal source code size</li>
+<li>no external dependencies (full C++ standard code)</li>
+<li>makefile included</li>
+</ul>
+
+<b>extra features<b>
+<ul>
+<li>log application crash</li>
+<li>memory debuging (tracing malloc/new...)</li>
+<li>designed to work in restricted environement (embedded, real time, application crash)</li>
+<li>integrate with error management framework</li>
+<li>integrate with unit testing framework</li>
+</ul>
+
+    * Transparent Logging to file / console / network.
+    * Supports different logging levels.
+    * Customizable : Log level, Module name, etc., can be configured on per file basis.
+    * Zero Performance overhead when the logging is disabled.
+    * Simple APIs similar to printf()
+
+
+</body>
+</html>

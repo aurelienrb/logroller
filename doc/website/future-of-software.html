@@ -1,0 +1,123 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>What is the future of C++ software?</h3> 
+
+<p>Today, "in my opinion", the context of development of software in C++
+is really different than 10 years ago, even more 5 years ago.  
+I am really not the right person to speak about that, since I was not yet
+developping C++ software 5 years ago. So, the only things I know are what I
+was told by more experienced people. So fell free to react.
+</p>
+
+<p>Nowadays, C++ compilers are becoming very good. We can find C++ compilers
+which are very respectful of the standard on almost all major systems, and
+which can deal with template quite well.
+There
+are less and less portability issues regarding the use of the STL.
+At the same time, they still continue to better optimize the code.
+The translation unit is no longer the limit, some compilers can do global
+optimisation at link time, almost like if all the source code was in an unique
+source file.
+Compilers can also optimize the code based on profiling files.
+</p>
+
+<p>
+So I think that we can reasonabily rely on the power of modern processors
+and the optimisation ability of C++ compilers in order not to care about
+a branch test, or even about inlining the code. Personnaly, I rarely put some
+inline code in my headers, I prefer to focus on readability by making my headers,
+which are the interface of my code, smaller. I think the use of <tt>inline</tt>
+is like the use of <tt>register</tt> few years ago. Nowadays, some good C++
+developpers even don't know that this keyword exists.
+</p>
+
+<p>The C++ is evolving, C++ programmers also.
+More and more people care about writing standard
+core, and forgiving the C heritage.
+The Boost libraries are becoming popular and are more and more used.
+Some of them are on the way to become part of the next standard (TR1).
+</p>
+
+<p>The place of multithreading is also increasing. Several compilers already
+implement OpenMP, modern computers have dual core processors, and in the future
+processors will have much more cores. At the same time, 64bit processors and OS
+are appearing. So I think the place of multi-threading will continue to grow.  
+</p>
+
+<p>Software are following the movance, and are still becoming
+larger and larger. As a direct result, the size of the source code and its complexity
+of a particular software are also still growing, but at an exponential level.
+Some new habits are appearing, in order to deal with this complexity.  
+</p>
+
+<p>There are also less and less big projects started from scratch.
+There are a lot of very old code still running, and which does not compile
+on modern compilers because the development team does not have the time
+to do the transition, because it is overwhelmed by the
+complexity of this code first writen by people who left the company before
+the older guy of the current team was hired. In my opinion, for such projects,
+it is too late, the "window is broken", and all the members of the team hates
+the software they are working on, and forgot the idea to do good software.
+</p>
+
+<p>It is very easy to judge exisiting code and find weak points.
+I know it very well, because I did it here with many libraries.
+However, exisiting code, even a bad one, has the incredible property
+to exist. It is precious, because even if it is not perfect, it does
+its job much better than a better code that does not exist.
+It is very difficult to fight again the NIH syndrom, and against the excitation
+of writing brand new code, from scratch. That's why I think a good logging
+library should be very flexible and give a lot of freedom in the way it can
+be customized and used, in order to allow each one to use it like he likes to.
+</p>
+
+<p>I am facinated by the fact that humans build things that a day become
+out of control. At the begining, everything is ok, but it comes a day when
+it is difficult to modify something whithout making the application to crash.
+How does such things happen? When do a quite good project become to reach its
+limits?
+</p>
+
+<p>Because software are becoming larger, develoment teams do the same.
+And the context of develoment is changing, because working with 10 other
+people is not the same at all than working alone or with just one other person.
+</p>
+
+<p>So the habits have changed. Now, almost everyone is using a source management
+system, and a bug tracking tool. And the habits are still changing, in order
+to react and protect against the loose of control. Unit testing and automated
+builds are becoming more and more common, and perhaps they will be as natural as
+using a SCM in the future.
+</p>
+
+<p>I think another important way to improve the quality of your software is 
+to do logging. Logging helps not to loose the control of your software, because
+each time something is going wrong, you can have a record of it, and analyse it
+like you would analyse a plane blackbox after a crash. So you can much more
+easily understand what is going wrong, and fix it before something more goes
+wrong and you begin to loose the control.  
+</p>
+
+<p>I am still a very young developper, but I strongly believe in automated
+quality tools, i.e tools that runs things by themself to check that everything
+is ok, and automatically signal you a problem, almost at the time it occured.
+</p>
+
+<p>
+I think it is a very underestimated feature, that it is under developped, and
+that we can do much more than writing some text in a file.
+I think is can be the base
+of software testing techniques, error dectection and handling, and defect report.   
+</p>
+
+<p>I have many ideas I would like to test in a real context. I also expect
+some feedbacks from you, developper, in order to go further in the reflexion
+and participate in the development of a new generation of programming tools.
+</p>
+
+</body>
+</html>

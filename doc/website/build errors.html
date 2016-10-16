@@ -1,0 +1,192 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+
+<h3>Errors when trying to use existing libraries</h3>
+
+<img src="images/832992_weird_cube.jpg" width="150" heigh="100" />
+
+<p>During my "evaluation of exisitng libraries", I tried to install and
+use several of them, following the given instructions. The result is
+terrible:
+</p>
+
+<p>As discussed in the "what is simplicity?", a library that can not be
+sucessfully installed and used in 5 minutes can not claim to be simple.
+As logroller wants to be a library simple of use, I tried to summurize
+here the errors I got, in order not to do the same. 
+</p>
+
+<h4>Autria</h4>
+<p>
+When I decided to try Autria, I looked on its website for information about
+how to build it:
+</p>
+
+<p><i>Austria uses the <a href="http://www.makexs.com/">MakeXS</a> build system.
+It should be a simple matter of typing "make" at the top level directory,
+or "make devenv" for visual studio.</i>
+</p>
+
+<p>It <i>should</i>, but it isn't. The link to MakeXS is broken (the web site
+is down), there is no information about this fancy build system, I have
+never heard of it, neither google
+(It seems the author of Austria is also the author of MakeXS).</p>
+
+<p>In the documentation given with the library, there is a file name
+<i>makexs.rtf</i>, which seems to explain in details how MakeXS works.
+I did not read it, I don't want to read the doc of a new (and unvailable)
+build tool in order to evaluate a library I may not use. So I gave up,
+and Austria was eliminated without having been tested.
+</p>
+<b>Do not use an exotic build system</b>
+
+<h4>log4cplus</h4>
+<p>
+After having uncompressed the log4cplus archive, I opened the VC++ 6 project
+<i>log4cplus.dsw</i> in the directory <i>msvc6</i> with Visual C++ 2005 Express.
+The project was successfuly converted, nice.
+</p>
+
+<p>So I tried to build yhe solution, but I quickly get many times the
+same error on this piece of code:
+</p>
+
+<pre>
+    operator=(const typename _Container::value_type& __value) {
+        *container += __value;
+        return *this;
+    }
+</pre>
+
+<pre>
+error C3630: erreur lors du traitement du jeton '__value'
+error C4980: '__value' : l'utilisation de ce mot clé requiert l'option de ligne de commande /clr:oldSyntax
+fatal error C1190: le code cible managé requiert une option '/clr'
+</pre>
+
+<p>This is a very stupid error, caused by the Managed C++ compiler extension
+introduced in Visual C++ .Net (2002). This <i>old syntax</i> (replaced by
+C++/CLI in Visual C++ 2005) contains the keyword <b>__value</b>.
+Because it is an extension of the standard C++ language, Microsoft prefixed
+it by a double underscore, as it is specified in the C++ standard.
+</p>
+<blockquote>
+<b>2.10 Identifiers</b>
+<p>In addition, identifiers containing a double underscore (__) or beginning
+with an underscore and an uppercase letter are reserved for use by C++
+implementations and standard libraries and shall not be used
+otherwise; no diagnostic is required.</p>
+</blockquote>
+
+<p>If you know that, fixing this error is really very simple:
+just rename the parameter <i>__value</i> to <i>value</i>.
+If you don't, you can easily lost a lot of time going in a wrong direction
+inspired by the error messages which speak about activating <i>/clr</i>
+option, and so on.
+</p>
+
+<p>This is a rule C++ developer don't really like to follow, in particular
+for the #ifndef...#define at the begining of a header file. However, here is
+a real example of a code broken for this reason. So, follow the standard
+recommendation as much as possible.
+</p>
+<b>follow the standard recommendation as much as possible</b>
+
+<h4>log4cplus, #2</h4>
+<p>After fixing the first silly erro, comes another one:
+</p>
+
+<pre>
+log4cplus::tstring
+log4cplus::helpers::toUpper(const log4cplus::tstring& s)
+{
+    tstring ret;
+    std::transform(s.begin(), s.end(),
+                   string_append_iterator&lt;tstring>(ret),
+#ifdef UNICODE
+#  if (defined(__MWERKS__) && defined(__MACOS__))
+                   std::towupper);
+#  else
+                   ::towupper);
+#  endif
+#else
+                   ::toupper);
+#endif
+    return ret;
+}
+</pre>
+
+<pre>
+error C2039: 'iterator_category' : n'est pas membre de 'log4cplus::helpers::string_append_iterator&lt;_Container>'
+error C2146: erreur de syntaxe : absence de ';' avant l'identificateur 'iterator_category'
+error C2602: 'std::iterator_traits&lt;_Iter>::iterator_category' n'est pas membre d'une classe de base de 'std::iterator_traits&lt;_Iter>'
+error C2868: 'std::iterator_traits&lt;_Iter>::iterator_category' : syntaxe de déclaration using non conforme ; nom qualifié attendu
+error C4430: spécificateur de type manquant - int est pris en compte par défaut. Remarque : C++ ne prend pas en charge int par défaut
+</pre>
+
+<p>This is an error reported to be in some template code, in file
+<i>xutility</i> (which is part of VC++ STL).
+This is serious error, which needs a very good knowledge of the STL
+and template code. Even a good C++ programmer
+can be completely confused and lost.
+</p>
+
+<p>The use of std::transform with toupper and tolower is known to be
+difficult and very complex. The fact is a simple for loop is simpler
+to understand and will have more chance to compile on most compiler.
+</p>
+
+<p>I won't discuss this issue error here, because it is not the place, and also
+because this is not the error. The error comes from the
+<em>string_append_iterator</em> helper class, which is an <i>insert iterator</i>
+aiming to replace <em>std::back_insert_iterator</em>.
+</p>
+
+<pre>
+/**
+ * This iterator can be used in place of the back_insert_iterator
+ * for compilers that don't have a std::basic_string class that
+ * has the push_back method.
+ */
+</pre>
+
+<p>I guess the authors introduced this helper class in order to solve
+some portability issues regarding the STL. The problem is they
+forgot to fully implement it as required by the standard, i.e by
+providing the <em>iterator_category</em> typedef.
+Having inherit from <em>std::iterator</em> would have prevented this
+(see 24.3.1 Iterator traits [lib.iterator.traits]
+and 24.4.2.1 Template class back_insert_iterator [lib.back.insert.iterator])
+,but I guess the authors had a good reason not to do so.
+</p>
+
+<p>The question is: where does this error really comes from?
+If the standard <em>std::back_insert_iterator</em> have been used in place of
+its given replacement <em>log4cplus::helpers::string_append_iterator</em>,
+this could would have compiled with no error. Even the first one would have
+occured because it was inside the <em>string_append_iterator</em> class.
+</p>
+
+<p>Why did the author do such a replacement? I don't know. But it is easy
+to guess: for portability. I guess there are some old compilers which
+do not provide the <em>std::back_insert_iterator</em> class, so it is
+a good thing to code a replacement class, because it improves the
+standard compatibility of this old compiler.
+</p>
+
+<p>However, forcing the use of this helper class even with compilers
+who provide a correct standard class should be avoided, become you can
+also <i>remove</i> standard compatibility of this compiler by providing
+a non fully standard helper class (which is very easy to do, as writing
+a fully standard STL class is the job of STL writers).
+We do no try to write a STL library, we try to write a logging library.
+This logging library must run on modern compilers, and should compile
+on future ones. If it compiles with older ones, it is a good thing,
+but be aware not to do things that can break your code in the future.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+#define log_enter(msg)\
+    static const struct log_entry_point entry = { msg "\0" __FILE__ "\0" MAKESTR(__LINE__) };\
+    static struct log_entry_ref entry_ref = { 0, true, &entry };\
+    log_scope_enter(&entry_ref);
+
+LOGROLLER_BEGIN_PACK
+struct log_entry_point
+{
+    const char * str;
+}
+LOGROLLER_END_PACK;
+
+LOGROLLER_BEGIN_PACK
+struct log_entry_ref
+{
+    uint16_t log_index;
+    bool is_enabled;
+    const struct log_entry_point * entry_point;
+}
+LOGROLLER_END_PACK;
+
+void log_scope_enter(struct log_entry_ref * entry_ref);
+
+/*
+void log_param_int32(uint32_t value, bool signed);
+void log_param_int64(uint64_t value, bool signed);
+void log_param_float32(float value);
+void log_param_double64(double value);
+void log_param_string(const char *str, size_t length);
+
+void log_params(const char *fmt, ...);
+*/
+
+/*
+#define assert_always_same_thread_comes_here()
+
+#define log_concurrent_access_happening_here(nb_threads)
+
+#define count_each_thread_access_here(nb_threads)\
+static countable_log_entry<nb_threads> here = { __FUNCTION__ };\
+static __thread volatile uint64_t * this_thread_counter = 0;\
+if (this_thread_counter == 0) {\
+    if (this_thread_id >= nb_threads) {\
+        this_thread_counter = 1; assert(false);\
+    } else {\
+        this_thread_counter = &here.counters[this_thread_id];\
+    }\
+    if (this_thread_counter > 1) {\
+        *this_thread_counter += 1;\
+    }\
+\}
+*/
+/*
+log_info("Hello").limit_frequency(10); // 10 sec
+
+log_error(msg).if_(!msg.empty());
+
+log_if_relevant(msg);
+
+log_if_error(msg);
+
+log_if_error() << msg << err_code;
+
+
+
+
+log_optional("tcp.buffer.out") << msg << err_code;
+
+    set_children_logs_optional("tcp", "debug|info");
+
+    logroller::disable_children_logs(log_tags::all);
+
+    logroller::set_children_optional("http.decoding", log_tags::all, false);
+
+    logroller::begin_children_filter("http.decoding");
+
+log_info(".retval") << result;
+
+LOG(".params filename=%1") << file_name;
+
+LOG(".params " "filename=%1") << file_name;
+LOG_PARAMS("filename=%1") << file_name;
+
+#define LOG_DEBUG(x) LOG_OPTIONAL(".debug " x)
+
+log_init("application", &consumer)
+
+log_setup_levels("trace,params < debug < info < warn,error", "info");
+
+#define LOG_PARAMS(msg) LOG_OPTIONAL(".params " msg).force_if_panic_mode()
+
+#define LOG_PANIC(msg) LOG(msg).start_panic_mode()
+
+void receive_msg()
+{
+    check_no_memory_leak();
+
+    logroller::precision_timer timer;
+
+    log_precise_timings();
+
+    logr::buffer buffer;
+    while (socket->has_data() && !buffer.cant_grow())
+    {
+        char *ptr = buffer.grow(socket->data_size());
+        socket->read(ptr, buffer.free_space());
+    }
+
+    if (!buffer.empty())
+    {
+        __try
+        {
+            decode_messages(buffer.data(), buffer.data_size());
+        }
+        __finally
+        {
+            LOG_PANIC("decode_messages() crashed!") << buffer;
+        }
+    }
+
+    // avoid double log of buffer
+    log_if_memory_leaks() << buffer;
+}
+*/
+
+/* 12 values: 4 bits for storage */
+enum log_param_type32
+{
+/* Embeded param types (that fit directly into the header) */
+    EMBEDED_BOOL1,
+    EMBEDED_CHAR8,
+    EMBEDED_WCHAR16,
+    EMBEDED_INT16,
+    EMBEDED_UINT16,  /* UINT8 are promoted to UINT16 */
+
+/* Extended param types (that need extra memory)
+   header->param_size holds the size of the parameter
+   param_size can be 0 (empty string)
+*/
+    EXTENDED_INT,     /* header_data = 4 for INT32, 8 for INT64 */
+    EXTENDED_UINT,    /* header_data = 4 for UINT32, 8 for UINT64 */
+    EXTENDED_REAL,    /* header_data = 4 for FLOAT32, 8 for DOUBLE64 */
+    EXTENDED_STRING8, /* header_data = length (nul terminator is absent) */
+    EXTENDED_STRING16,/* header_data = length * 2 (nul terminator is absent) */
+    EXTENDED_STRING32 /* header_data = length * 4 (nul terminator is absent) */
+    EXTENDED_SYSTEM,
+};
+
+/*
+*  log_entry 32 bits
+*  For desktop / server programs in multithreaded environment.
+*  Support for unicode strings (both UTF16/UTF32).
+*  Number max of distinct threads during program life span: 2048 (thread ids will just overflow otherwise, without any other consequence).
+*  Number max of distinct log messages: 65536.
+*  Max size of single parameter: 64Ko.
+*/
+LOGROLLER_BEGIN_PACK
+struct log_entry32
+{
+    unsigned int          entry_type : 1;  /* enum log_entry_type */
+    union {
+        unsigned int      scope_flags: 3;  /* (valid if entry_type == SCOPE) We use 3 to remain compatible with log_entry16. */
+        unsigned int      param_type : 4;  /* enum log_param_type32 (valid if entry_type == PARAM) */
+    } u4;
+    unsigned int          thread_id  : 11; /* max 2048 threads before id overflow */
+    union {
+        uint16_t          log_index;       /* valid if entry_type == SCOPE */
+        uint16_t          param_value;     /* valid if entry_type == PARAM && param_type == EMBEDED_XXX */
+        uint16_t          param_size;      /* valid if entry_type == PARAM && param_type == EXTENDED_XXX */
+    } u16;
+}
+LOGROLLER_END_PACK;
+
+LOGROLLER_BEGIN_PACK
+struct log_entry32
+{
+    uint16_t type      : 1; /* SCOPE       or PARAM */
+    uint16_t details   : 4; /* SCOPE_FLAGS or PARAM_TYPE32 */
+    uint16_t thread_id :11; /* up to 2048 different threads */
+    uint16_t data      :16; /* log index   or embeded param value or extended param size */
+}
+LOGROLLER_END_PACK;
+
+// gettimeofday()
+// clock_gettime
+void log_scope_enter(const struct log_entry_point * entry_point);
+
+void log_param_int32(int32_t);
+void log_param_uint32(uint32_t);
+/*
+log_param_str8(const char *str, size_t len);
+//log_param_str16(const unsigned short *str, unsigned short len);
+//log_param_str32(const unsigned long *str, unsigned short len);
+*/

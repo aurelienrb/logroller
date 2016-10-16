@@ -1,0 +1,333 @@
+/*#############################################################
+© 2007
+Author: Igor Jovic
+URL: http://spinz.se
+#############################################################*/
+
+/* default elements */
+*{margin:0px;padding:0px}
+
+a
+{
+color:#0091d3;
+font-weight:normal;
+font-style:normal;
+text-decoration:none;
+}
+
+a:link
+{
+color:#0091d3;
+font-weight:normal;
+font-style:normal;
+text-decoration:none;
+}
+a:visited
+{
+font-style:normal;
+font-weight:normal;
+text-decoration:none;
+}
+
+a:hover
+{
+color:#000; 
+font-style:normal;
+text-decoration:none;
+border-bottom:1px dotted #4e4e4e;
+}
+
+/* Layout */
+body
+{
+margin: 0;
+padding:0;
+font-family: Verdana,'Lucida Grande', Verdana, Helvetica, sans-serif;
+background:#ffffff url(body-bg.gif) repeat-x;
+list-style:none;
+line-height:1.2em;
+}
+
+#wrapper 
+{
+margin-top: 0pt;
+margin-right: auto;
+margin-left: auto;
+height:300px;
+width:1000px;
+background:transparent;
+}
+
+#header 
+{
+width: 950px;
+background: #fff;
+}
+
+#header .logo
+{
+float:left;
+margin-top:34px;
+padding-top:0px;
+padding-left:32px;
+border: none;
+}
+
+#nav ul
+{
+display:block;
+float:right;
+list-style:none;
+margin-top:63px;
+margin-left:0px;
+}
+
+#nav li
+{
+float:left;
+margin-bottom:0px;
+padding-bottom:0px;
+padding-right:5px;
+
+}
+
+#nav ul li a
+{
+float:left;
+display:block;
+margin-right:1px;
+padding-right:5px;
+padding-left:5px;
+padding-top:3px;
+padding-bottom:0px;
+color: #4e4e4e;
+font-weight: bold;
+text-decoration: none;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+#nav  li a:hover
+{
+color:#0091d3;
+border-bottom:1px dotted #4e4e4e;
+}
+
+#nav .selected
+{
+color: #0091d3;
+border-bottom:1px dotted #4e4e4e;
+}
+
+#content 
+{
+float:left;
+background-color:transparent;
+margin-top:0px;
+margin-bottom:0px;
+padding:10px;
+width:100%;
+border-bottom:1px solid #eaeaea;
+}
+
+#toppy
+{
+float:left;
+background-color:transparent;
+margin-top:40px;
+margin-bottom:5px;
+padding:10px;
+width: 970px;
+border-top:1px dotted #bbbbbb;
+border-bottom:1px dotted #bbbbbb;
+}
+
+#toppy h1
+{ 
+font-family:Georgia;
+font-size:2.5em;
+color: #000;
+font-weight:normal;
+padding-bottom:0;
+}
+
+#toppy h2
+{ 
+font-family:Georgia;
+font-size:1.5em;
+color:#888;
+font-weight:normal;
+padding-left:2em;
+padding-top:0;
+padding-bottom:10px;
+}
+
+#toppy img
+{
+float: left;
+}
+
+#content
+{
+background-color:transparent;
+margin-top:10px;
+margin-bottom:5px;
+padding:10px;
+width: 800px;
+border:1px dotted #bbbbbb;
+text-align: justify;
+font-size:0.75em;
+}
+
+acronym
+{
+border-bottom:1px dotted;
+}
+
+p
+{
+font-family:Verdana, Arial, helvetica, sans-serif;
+font-weight: normal;
+color:#000;
+padding-left:5px;
+/*line-height:1.6em*/
+}
+
+p, ul
+{
+padding:0 10px 10px 0;
+color:#000;
+}
+
+pre
+{  
+  border: solid 1px;
+  margin: 0 30px 20px 30px;
+  padding: 10px;
+  font-size:1.2em;
+}
+
+p.pretitle
+{
+margin: 10px 30px 0 30px;
+padding: 0;
+border: solid 1px;
+border-bottom: 0;
+width: 10em;
+text-align: center;
+font-weight:bold;
+}
+
+tt
+{
+font-size:1.2em;
+}
+
+tt.keyw
+{
+color: blue;
+}
+
+li
+{
+margin-left: 30px;
+padding-bottom: 5px;
+/*line-height:1.6em*/
+}
+
+h1
+{
+font-family:arial, verdana, helvetica, sans-serif;
+font-size:1.9em; 
+color: #000;
+line-height:1.6em
+font-weight:normal;
+padding-bottom:10px;
+}
+	
+h2
+{ 
+font-family:Georgia;
+font-size:1.6em;
+color: #000;
+font-weight:normal;
+padding-bottom:10px;
+padding-top:20px;
+}
+
+h3
+{
+font-size:0.8em;
+color: #000;
+font-weight:bold;
+padding-bottom:10px;
+}
+
+pre .comment
+{
+color: green;
+}
+
+pre .type
+{
+color: blue;
+}
+
+pre .string
+{
+color: brown;
+}
+
+pre .keyw
+{
+color: blue;
+}
+
+pre .log
+{
+font-weight:bold;
+color: #555;
+}
+
+#footer 
+{
+clear: both;
+margin-right: 0px;
+margin-bottom:0px;
+margin-left: 0px;
+padding:8px;
+background-color:transparent;
+text-align:center;
+border-top:1px dotted #bbbbbb;
+}
+
+#footer p
+{
+font-size: 0.7em;
+line-height:3em;
+font-family: arial;
+font-weight: normal;
+color: #5b5b5b;
+padding-top: 10px;
+padding-right: 0px;
+padding-bottom: 10px;
+padding-left: 10px;
+text-align: center;
+}
+
+.left
+{
+float: left;
+padding-top: 4px;
+padding-right: 4px;
+padding-bottom: 4px;
+padding-left: 4px;
+}
+
+.right
+{
+float: right;
+padding-top: 4px;
+padding-right: 4px;
+padding-bottom: 4px;
+padding-left: 4px;
+}

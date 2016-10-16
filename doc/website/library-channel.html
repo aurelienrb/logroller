@@ -1,0 +1,87 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Review of the Channel library</h3>
+
+<img src="images/28628_soundmixer_v2.jpg" width="150" heigh="112" />
+
+<p>The logging facilities if the <tt>channel</tt> library has been
+argued on the boost mailing list by Shams:
+</p>
+
+<pre>
+After looking forward to a Boost Logging library for a while, I have been
+playing with this idea.
+
+This library http://channel.sourceforge.net/ which I believe the author is
+working towards
+including in Boost could be used to help write the logging library? Why
+because it works both
+acrosss local and remote machines and supports a asyncronous subscribing
+machenism.
+
+Boost.Logging could use Boost.Channel (hopefully) to allow doing of
+something like below
+somewhere along the lines of...
+
+Boost.Logging Log;
+
+// Some of these channels could be a built-in to Boost logging.
+
+// add one channel at a time
+Log.AddChannel(new SysLogOnLocal());
+Log.AddChannel(new SysLogOnRemoteChannel("remote ip"));
+Log.AddChannel(new SysLogLocalAndRemoteChannel(""remote ip");
+Log.AddChannel(stdout);
+Log.AddChannel(stderr);
+Log.AddChannel(GuiWindow);
+
+// add lots all together
+Log.AddChannel(new LocalInfoChannel(), new LocalAndRemoteInfoChannel(), new
+ErrorChannel(), new WarningChannel());
+
+// writes to the info channel
+Log.Write(LocalInfoChannel, "Hello World");
+
+// writes to the info channel
+Log.Write(LocalAndRemoteInfoChannel, "Hello World");
+
+// writes to all the channels that the logger is subscribed to (nasty)...
+Log.Write("Hello World");
+
+The possibility and the power of this thing could be, well a powerful
+logging library....
+I suggest you look into this library during this design phase... 
+</pre>
+
+<h4>Personnal opinion</h4>
+<p>I personaly completely disagree with the approach of this library. If think
+the basic Hello World example speaks enought:
+</p>
+
+<pre>
+// writes to all the channels that the logger is subscribed to (nasty)...
+Log.Write("Hello World");
+</pre>
+
+<p>This is the very basic use of the logging library, what every beginner will
+do, and it is said to be <i>nasty</i>. So I think the design of the library
+may make it powerful, but does not make it simple, which is my creterea number 1.
+I also find the syntax , and the introduction of the concept of
+channel useless at that level, which is also the main concept of the library...
+</p>
+
+<p>I think the attention of the user of this library is deviated from his first
+concern (he wants to log data) to an other subject (where to log data, i.e a channel)
+which is, in my opinion, unneeded at this level. And this concept of channel
+is the main concept of this library. I also find the syntax of use of this library
+over bloated (your need to write more text to log the data than the data itself).
+<br />
+So, said it shortly, this library does not fullfit <b>my expectation</b> at all.  
+</p>
+
+</body>
+</html>

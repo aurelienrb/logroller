@@ -1,0 +1,240 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Boost vision of logging</h3> 
+
+<p>Another source of very good information is the Boost mailing list.
+If you don't know what Boost is, here is how they introduce themselves:
+</p>
+
+<blockquote>
+Boost provides free peer-reviewed portable C++ source libraries.
+<br />
+(...)
+<br />
+We emphasize libraries that work well with the C++ Standard Library.
+Boost libraries are intended to be widely useful, and usable across a broad spectrum of applications.
+<br />
+(...)
+<br />
+We aim to establish "existing practice" and provide reference implementations
+so that Boost libraries are suitable for eventual standardization.
+<br />
+(...)
+<br />
+Although Boost was begun by members of the C++ Standards Committee
+Library Working Group, participation has expanded to include thousands
+of programmers from the C++ community at large.
+<br />
+If you are interested in participating in Boost, please join our main
+developers mailing list. Discussions are highly technical, and list members
+are encouraged to participate in formal reviews of proposed libraries.
+</blockquote>
+
+<p>Said shortly, the Boost mailing list is a place where many C++ experts
+discuss about library development in C++.
+The participants of this mailing list sometime call themselves "boosters".
+Ironically, a booster is also the name of the reusable rocket which
+provides the main thrust to lift the Space Shuttle in the air.
+So, while the members of this mailing list give very valuable advices,
+we still have to be vigilant not to fall in the developement of a
+"logging library for Space Shuttle programmers". 
+</p>
+
+<p>Boost already includes many
+very evoluated libraries, but does not propose any log library.
+The subject has however been discussed many times, and theses discussion
+threads are gold mines for people interested in logging. I tried to summarize
+all I read in the present document.   
+</p>
+
+<h3>Gareth Buxton point of view</h3>
+<p>I have dedicated another page to Gareth Buxton vision of logging as he is
+the author of the "logplusplus" library.
+</p>
+
+<h3>Jean-Daniel Michaud point of view</h3>
+<p>Jean-Daniel spend some time to read and collect information from previous
+discussion threads. Here is his synthesys:
+</p>
+
+<pre>
+we should definitely avoid starting from scratch again. The
+problem is that there is so many divergent propositions and ideas, and
+aggregate them won't be an easy task.
+
+Here is a couple of ideas I have glanced from previous threads:
+
+John Torjo had actually a similar point of view to mine. He was looking
+for simplicity. As we are talking to a wide range of users, the library
+should have almost no learning curve. Looking at the basic example in
+the tutorial should be enough to get the fundamental usage of it.
+John had also in mind the possibility to disconnect module of
+application from the logger. For example, from a certain point in the
+code, the GUI logs would be discarded. He also wanted the library to be
+small, and I fully agree with this. A header file and that's it.
+Not anyone agree with this, Vladimir Prus for example was expecting
+something more configurable. Pavel Vozenilek added: "Maybe it is
+possible to design a library which has (by default) this simple
+interface but allows very fine customization." That is why I'm trying to
+concentrate on the first part (design a library which has (by default)
+this simple interface) and then, a second part could be handled by other
+people interested in fine customization.
+
+As a first set of requirements, Caleb Epstein stated those, and Rene
+Riviera answered:
+&lt;CE>: Uses iostreams
+&lt;RR>: I disagree. Like most things STL it should be independent of a
+stream back end. And ideally independent of a formatting front end. It
+should only be a tagging, filtering, and multiplexing interface.
+
+&lt;CE>: Thread-safe (e.g. two threads can't have their output intermixed
+in the output file/stream/whatever like they would with simple ostream&lt;&lt;
+operators)
+&lt;RR>: Yes, but only if needed. It might not be appropriate depending on
+the front end or back end. For example you might be dumping the "output"
+to a database which would create individual debug records. No need for
+thread safety at the log level in that case.
+
+&lt;CE>: Multiple possible output media (files, sockets, syslog, Windows
+event log, etc)
+RR: Multiplexing
+
+&lt;CE>: Multiple named channels each with configurable "threshold" (e.g.
+error, warning, debug, etc)
+&lt;RR>: And configurable, so that you can program what each one does on
+both the front end and to which back end they go to.
+&lt;JD>: The log level (unsigned short) could handle that. OR maybe a mask
+would be more appropriate ?
+
+&lt;CE>: Messages which won't be logged shouldn't even go through the
+formatting step. I'm pretty sure this cannot be done in a single call
+w/o macros though.
+
+Johan Nilson also engaged a lengthy discussion. Few ideas I have retain
+from him:
+   Structured logging functionality. (&lt;JD>: Is it formatting you are
+talking about?)
+   log_item for formatting (&lt;JD>: What I called log_element in the
+library I have posted).
+
+Daryl Green seems to have a put a lot of though into this and also
+define a set of requirements I'm trying to summarize here, some of them
+are pure citation:
+- The logging library must be very efficient in handling disabled "logs".
+- The logging library must be user extensible to add new output
+(appender) facilities. This should be very easy and not require in-depth
+knowledge/study of library/its docs to do. Appenders, which are likely
+to have system dependencies, should not be tightly coupled with the core
+logging facilities. (&lt;JD>: Wishful thinking ?)
+- The library must scale well. This should include the ability to
+(efficiently) use a very minimal form of the library in small, perhaps
+single-threaded only, apps as well as achieving good performance on
+multiprocessor platforms in multi threaded apps. (&lt;JD>: The first part I
+was talking about, but the multi threading shall not be an option for me).
+
+I agree also with Daryl that a very simple, extensible library can be
+submitted first and extended in the future. If we wait for a complete
+logging library to introduce it into boost, we'll never have it...
+
+Maxim Yegorushkin asked for file management (cycling through log file,
+file size control). I think this is interesting but shall not make it
+into the core library. Maybe an helper object, in a distinct header file
+could make it. Still I think this shall not be part of the first line of
+proposal as it tends to divert the discussion and prevent decision on
+the core logging library itself to be taken.
+
+Some few ideas I saw:
++ Scoped log (&lt;JD>: what is a scoped log?)
++ fast compile time
+
+Technical questions:
++ thread id: How to retrieve thread id with Boost.Threads?
++ program name: Is argv[0] a good idea to retrieve program name? I don't
+why i wouldn't, but just in case.
+
+Now, some point raised during the formal review of John's library:
+- Roman Yakovenko:
+He was not pleased by the way John's library handles macro. In this
+library, here is the way you log something:
+
+   BOOST_LOG(dbg) &lt;&lt; "this is a debug message, i=" &lt;&lt; i &lt;&lt; std::endl;
+
+In any case, logging avtivated or not, the message will be streamed.
+What I developped in the logging library posted above is to encapsulate
+the streaming in the macro, as propose by many people during the discussion:
+
+   BOOST_LOG(1, "this is a debug message, i=" &lt;&lt; i &lt;&lt; std::endl);
+
+The streaming will be performed only if necessary. Note, the library I
+posted does not handle it correctly (the test is perform after the
+streaming ;p), but it will.
+
+I also see the need of a compile time disabling. Here again, I'm not
+sure the library shall deal with this. Just define some macro like:
+BOOST_LOG_L1(trace) BOOST_LOG(1, trace)
+BOOST_LOG_L2(trace) BOOST_LOG(2, trace)
+#ifdef _DEBUG
+   BOOST_LOG_L3(trace) BOOST_LOG(3, trace)
+#elseif
+   BOOST_LOG_L3(trace) ;
+#endif // _DEBUG
+
+- Andras Erdei:
+"My main concern about logging is that it changes application
+behavior: often there are bugs that only surface in release code
+because logging is slow and it introduces synchronizing, so logging
+should be as fast as possible, and locks should be avoided whenever
+possible."
+
+So another requirement would be that the library shall be as fast as
+possible (pretty obvious) and the less intrusive as possible. But I'm
+afraid the caveats described by Andras are inevitable.
+
+"I do not want to declare and define and initialize logs, just
+include a header, and then write "LOG &lt;&lt; ..."; i do not want
+to give names to logfiles, and i don't want runtime configurable
+logs and log levels and multiline log entries and calling functions
+that log from inside "LOG &lt;&lt; ..." statements"
+
+Well, I think the initialization part is essential, or you have a
+library that is deciding things for you, and I don't think it's a good
+thing.
+
+" and i do not want to
+pay (with runtime and additional typing) for the features i do not
+use."
+
+Seems fair. -> Library shall stay simple. The more simple it is, the
+more it has chance to get into boost and then be developed to something
+more evolved. To Andras remarks, John answered:
+" I made the logging library flexible (or at least I hope so :)), so
+users can tweak the lib to their needs.Logging can be so much more that
+writing to one file."
+
+I think this is where troubles starts. As I said, the logging library
+shall be simple to the cost of not being configurable at first. After
+inclusion to boost, it can get better. Yes, it looks like petty
+politics, but how come there is no logging library into boost with all
+the interest it has in the past then ?
+</pre>
+
+<p>In reaction to this post, people react:
+</p>
+
+
+<p>Jody Hagins says:
+</p>
+<blockquote>
+As you can see, the opinions
+differ widely. I think you have to have a simple interface that is
+efficient and easy to use. However, you also need a way to offer
+extensive customizations. This is the hard part, and where the real
+problem exists. 
+</blockquote>
+
+</body>
+</html>

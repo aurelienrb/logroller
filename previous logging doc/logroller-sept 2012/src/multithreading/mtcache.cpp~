@@ -1,0 +1,41 @@
+#include <assert.h>
+#include <stdlib.h>
+
+const unsigned int array_size = 1024 * 1024 * 200;
+volatile unsigned int current_index = 0;
+
+typedef unsigned int array_type;
+unsigned array_type * array = 0;
+
+void write_in_array(unsigned int nb_write)
+{
+  for (unsigned int i = 0; i < nb_write; i++) {
+    unsigned int index = __sync_fetch_and_add(&current_index, 1);
+    if (index >= array_size) {
+      if (index == array_size) {
+	unsigned new_index = __sync_fetch_and_sub(&current_index, array_size);
+	index = 0;
+      } else {
+	index -= array_size;
+      }
+    }
+
+    array[index] = (array_type)i;
+  }   
+}
+
+void thread_proc()
+{
+
+}
+
+int main()
+{
+  array = malloc(sizeof(array_type) * array_size);
+
+  write_in_array(array_size + 1);
+  assert(array[0] == array_size + 1);
+  assert(array[1) == 1);
+
+  free(array);
+}

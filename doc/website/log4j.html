@@ -1,0 +1,266 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>The vision of logging of log4j</h3>
+
+<p>One of the more advanced and popular logging library is certainly log4j,
+i.e Log For Java. 
+log4j has many users and is developped since many years.
+As it is quite well documented, it is not surprising that it contains 
+very good general information about logging. The design and the evolution
+of this library should also be evaluated with attention, as it reflects many years
+of research and evolution to correct weak points.
+So, though it is principaly Java oriented, it is a very rich source
+of information, even for a C++ developpers.
+</p>
+
+<p>log4j is developped and hosted by the Apache foundation,
+which also develop an official port for C++, named log4cxx.
+But log4j has also inspired other unofficial C++ ports,
+like log4cpp and log4cplus, and a C port named Log4C.
+In this page, I will discuss log4j 
+in general, and log4cxx, log4cpp, log4cplus and Log4C
+in particular.
+</p>
+
+<blockquote>
+<h2>Introduction</h2>
+
+<p>Almost every large application includes its own logging or tracing
+API. In conformance with this rule, the E.U.  <a href="http://www.semper.org/">SEMPER</a> project decided to write its
+own tracing API. This was in early 1996. After countless enhancements,
+several incarnations and much work that API has evolved to become
+log4j, a popular logging package for Java. The package is distributed
+under the <a href="http://logging.apache.org/log4j/LICENSE">Apache Software License</a>, a
+fully-fledged open source license certified by the <a href="http://www.opensource.org/">open source</a> initiative. The
+latest log4j version, including full-source code, class files and
+documentation can be found at <a href="http://logging.apache.org/log4j/"><b>http://logging.apache.org/log4j/</b></a>.
+By the way, log4j has been ported to the C, C++, C#, Perl, Python,
+Ruby, and Eiffel languages.</p>
+
+<p>Inserting log statements into code is a low-tech method for
+debugging it. It may also be the only way because debuggers are not
+always available or applicable. This is usually the case for
+multithreaded applications and distributed applications at large.</p>
+
+<p>Experience indicates that logging was an important component of the
+development cycle. It offeres several advantages. It provides precise
+<em>context</em> about a run of the application. Once inserted into
+the code, the generation of logging output requires no human
+intervention.  Moreover, log output can be saved in persistent medium
+to be studied at a later time. In addition to its use in the
+development cycle, a sufficiently rich logging package can also be
+viewed as an auditing tool.</p>
+
+<p>As Brian W. Kernighan and Rob Pike put it in their truly excellent
+book <i>"The Practice of Programming"</i>
+</p><pre>  As personal choice, we tend not to use debuggers beyond getting a
+  stack trace or the value of a variable or two. One reason is that it
+  is easy to get lost in details of complicated data structures and
+  control flow; we find stepping through a program less productive
+  than thinking harder and adding output statements and self-checking
+  code at critical places. Clicking over statements takes longer than
+  scanning the output of judiciously-placed displays. It takes less
+  time to decide where to put print statements than to single-step to
+  the critical section of code, even assuming we know where that
+  is. More important, debugging statements stay with the program;
+  debugging sessions are transient.
+</pre>
+
+<p>Logging does have its drawbacks. It can slow down an
+application. If too verbose, it can cause scrolling blindness. To
+alleviate these concerns, log4j is designed to be reliable, fast and
+extensible. Since logging is rarely the main focus of an application,
+the log4j API strives to be simple to understand and to use.</p>
+</blockquote>
+   
+<p>This introduction spots several interesting points about logging:
+</p>
+
+<ul>
+<li>There is a distinction between logging and tracing</li>
+<li>Logging can be a good debugging technique, especially when
+debuggers are not available</li>
+<li>logging provides precise <em>context</em> about a run of the application</li>
+<li>the generation of logging output requires no human intervention</li>
+<li>the use of logging can be a more efficient than using a debugger
+if the displays are "judiciously-placed"</li>
+<li>Logging does have its drawbacks.</li>
+<li>Logging can slow down an application.</li>
+<li>Logging should not be too verbose.</li>
+<li>Logging is rarely the main focus of an application, so a logging library
+should be simple to understand and to use</li>
+</ul>
+
+<blockquote>
+<p>The first and foremost advantage of any logging API over plain
+<code>System.out.println</code> resides in its ability to disable
+certain log statements while allowing others to print unhindered. This
+capability assumes that the logging space, that is, the space of all
+possible logging statements, is categorized according to some
+developer-chosen criteria. This observation had previously led us to
+choose <em>category</em> as the central concept of the
+package. However, since log4j version 1.2, <code>Logger</code> class
+has replaced the <code>Category</code> class. For those familiar with
+earlier versions of log4j, the <code>Logger</code> class can be
+considered as a mere alias to the <code>Category</code> class.</p>
+
+<p>Loggers are named entities.</p>
+</blockquote>
+
+<ul>
+<li>Any logging API should be able to disable certain log statements
+while allowing others to print unhindered</li>
+<li>To do that, the space of all possible logging statements should be
+categorized according to some developer-chosen criteria</li>
+<li>Firsts versions of log4j used a concept of <em>category</em>
+which was later generalized to the concept of <em>named entities</em>,
+called a Logger</li>
+</ul>
+
+<blockquote>
+<p>Loggers <em>may</em> be assigned levels. [...]
+Although we do not encourage you to do so, you may define
+your own levels by sub-classing the <code>Level</code> class. A
+perhaps better approach will be explained later on.</p>
+
+<p>A logging request is said to be <em>enabled</em> if its level is
+higher than or equal to the level of its logger. Otherwise, the
+request is said to be <em>disabled</em>. A logger without an
+assigned level will inherit one from the hierarchy. This rule is
+summarized below.</p>
+
+
+<p>
+<a name="selectionRule"></a></p><table class="bodyTable">
+  <tbody><tr class="b">
+  <td>
+      <dl>
+	<dt><b>Basic Selection Rule</b></dt>
+
+	<dd><p>A log request of level <i>p</i> in a logger with
+	(either assigned or inherited, whichever is appropriate) level <i>q</i>, is enabled if <i> p &gt;=
+	q</i>.</p></dd>
+
+      </dl>
+</td></tr></tbody></table>
+
+<p>This rule is at the heart of log4j. It assumes that levels are
+ordered. For the standard levels, we have <code>DEBUG &lt; INFO
+&lt; WARN &lt; ERROR &lt; FATAL</code>.</p>
+</blockquote>
+
+<ul>
+<li>The developer-chosen criteria used by log4j is based on attributing a level to a logging request</li>
+<li>Levels are ordered</li>
+<li>log4j also use a threshold mecanism to enable ou disable requests of a particular level</li>
+<li>log4j comes with a predefined list of ordered levels that should not be modified, even if possible</li>
+</ul>
+
+<blockquote>
+<h2>Configuration</h2>
+
+<p>Inserting log requests into the application code requires a fair
+amount of planning and effort. Observation shows that approximately 4
+percent of code is dedicated to logging. Consequently, even moderately
+sized applications will have thousands of logging statements embedded
+within their code.  Given their number, it becomes imperative to
+manage these log statements without the need to modify them manually.</p>
+
+<p>The log4j environment is fully configurable programmatically.
+However, it is far more flexible to configure log4j using
+configuration files.  Currently, configuration files can be written in
+XML or in Java properties (key=value) format.</p>
+
+[...]
+
+<p>Configuration of the log4j environment is typically done at
+application initialization. The preferred way is by reading a
+configuration file. This approach will be discussed shortly.</p>
+
+<p>Log4j makes it easy to name loggers by <em>software
+component</em>.  This can be accomplished by statically instantiating
+a logger in each class, with the logger name equal to the fully
+qualified name of the class. This is a useful and straightforward
+method of defining loggers. As the log output bears the name of the
+generating logger, this naming strategy makes it easy to identify
+the origin of a log message.  However, this is only one possible,
+albeit common, strategy for naming loggers. Log4j does not restrict
+the possible set of loggers. The developer is free to name the
+loggers as desired.</p>
+
+<p>Nevertheless, naming loggers after the class where they are
+located seems to be the best strategy known so far.</p>
+</blockquote>
+
+<ul>
+<li>Inserting log requests into the application code requires a fair
+amount of planning and effort.</li>
+<li>Log statements must be manageable without the need to modify
+them manually</li>
+<li>Configuring a logging library via configuration files is
+far more flexible than doing it programmatically</li>
+<li>The preferred way to do this is to read this file at application
+initialization</li>
+<li>Identifying the origin of a log message can be difficult</li>
+<li>The origin of a log message can be attached to a <em>software
+component</em></li>
+<li>Identifying the origin of log messages by using the fully
+qualified name of the class where they are located seems
+to be the best strategy known so far</li>
+</ul>
+
+hierarchie des software component
+
+<blockquote>
+<p>Log4j allows logging requests to print to multiple destinations.
+In log4j speak, an output destination is called an appender.
+Currently, appenders exist for the console, files, GUI components,
+remote socket servers, JMS,  NT Event Loggers, and remote UNIX Syslog daemons.
+It is also possible to log asynchronously.
+</p>
+
+<p>More than one appender can be attached to a logger.
+</p>
+
+<p>On the other hand, some people argue that log statements pollute
+source code and decrease legibility.
+(We believe that the contrary is true).
+In the Java language where a preprocessor is not available,
+log statements increase the size of the code and reduce its speed,
+even when logging is turned off.
+Given that a reasonably sized application may contain thousands
+of log statements, speed is of particular importance.
+</p>
+
+<p>With log4j it is possible to enable logging at runtime without
+modifying the application binary.
+The log4j package is designed so that these statements can remain
+in shipped code without incurring a heavy performance cost.
+Logging behavior can be controlled by editing a configuration file,
+without touching the application binary.
+</p>
+</blockquote>
+
+<ul>
+<li>A logging library should allow logging requests to be printed
+to multiple destinations (console, files, remote socket servers, ...)</li>
+<li>We can distinguis synchronous and asynchronous logging</li>
+<li>log4j allows to customize the logging destination for each group of
+logging statements</li>
+<li>Some people think that log statements pollute source code and decrease legibility</li>
+<li>If the language has a preprocessor and logging is turned off,
+log statements should have almost no impact on size or its speed</li>
+<li>A reasonably sized application may contain thousands of log statements</li>
+<li>Even for a reasonably sized application, speed is of particular importance</li>
+<li>A good logging library should be configurable at run-time</li>
+<li>Controling the run-time behavior of the logging library should be possible
+without touching the application binary</li>
+<li></li>
+</ul>
+
+</body>
+</html>

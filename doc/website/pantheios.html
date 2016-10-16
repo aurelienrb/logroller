@@ -1,0 +1,484 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Pantheios review</h3> 
+
+<p>
+In the "jungle of C++ logging libraries", very few of them are really
+mature and really used by the C++ community. Pantheios is one of them.
+</p>
+
+<p>Pantheios is quite interesting to study, because it is a successful
+library which is not related to "the log4j sphere", and which was developped
+with C and C++ in mind. It was first developped by
+<a href="http://www.synesis.com.au">Synesis Software</a>,
+by Matthew Wilson, "with contributions, opinions and advice by Garth Lancaster".
+It was then <a href="http://www.synesis.com.au/news.html#pantheios">forked out of the Synesis Software code base in 2005</a>,
+as an open source project:
+</p>
+
+<blockquote>
+<p>
+We believe that this open-source logging API library represents the ultimate
+combination of atomicity, genericity, efficiency, extensibility, portability,
+and type-safety and, best of all, it upholds the Spirit of C: you only pay
+for what you use.
+</p>
+<p>
+The unique design means that Pantheios incurs virtually no cost when logging
+(of a particular severity level) is switched off. The <a href = "http://pantheios.org/performance.html">performance tests</a>
+conducted thus far indicate that the performance features of Pantheios
+outstrip those of any other logging library by a considerable margin.
+</p>
+</blockquote>
+
+<p>Before going further, I think it is useful to look at the main author's
+profile. Matthew Wilson is a true C++ expert, who
+<a href="http://www.artima.com/weblogs/viewpost.jsp?thread=102861">describes him self</a> as this
+(in 2005):
+</p>
+
+<blockquote>
+<p>
+My experience is roughly 12 years C/C++, with a strong focus on 
+high-performance/communications systems, and mixed languages/technologies.
+<br />
+(...)<br />
+<br />
+Although I'm wont to flights of template-programming fancy, I'm primarily a pragmatist, and
+am constantly on the lookout for ways to simplify people's use of C++.
+</p>
+</blockquote>
+
+<p>Matthew Wilson wrotes <a href="http://www.synesis.com.au/articles.html">a huge
+number of articles</a> for <a href="http://www.cuj.com/">C/C++ User's Journal/Dr Dobb's Journal</a>,
+<a href="http://www.artima.com/cppsource">The C++ Source (artima)</a>,
+<a href="http://www.byte.com/">BYTE</a>,
+<a href="http://www.wd-mag.com/">Windows Developer Magazine</a>, and some others.
+He is also the authors 2 C++ books,
+<a href="http://imperfectcplusplus.com/">Imperfect C++</a> and
+the recent <a href="http://extendedstl.com/">Extended STL, volume 1: Collections and Iterators</a>.
+</p>
+
+<p>Last, but not least, he is also involved in
+<a href="http://sourceforge.net/users/matsys/">many open source projects</a>,
+in particular the <a href="http://synesis.com.au/software/stlsoft/">STLSoft library</a>,
+which is used by Pantheios and is needed to build and use the logging library.
+</p>
+
+<p>Pantheios is also one the rare logging library which became successful and popular,
+and one of the only one which can compete the official "log4j" port, i.e "log4cxx".
+It is also one of the rare library which is still in development, and for which
+new versions are planned soon.
+So Matthew managed to make Pantheios a successful project, which is not an easy
+task as the "list of totaly unknown project" show it.
+So we should consider it with respect and attention.
+</p>
+
+<h4>Pantheios at a glance</h4>
+
+<p>When you browse the Pantheios documentation, you can fell how much importance
+the author gives to performance. He spent a long time to write
+<a href="http://pantheios.sourceforge.net/performance.html#sweet-spot">benchmarks</a>
+which highlight the quite good performance of its library in general, but more
+especially the <i>unmeasurably low impact on performance when logging
+(of a given severity level) is switched off</i>. In my opinion, it is the essence
+of this project, and why it was born. So, the first conclusion we can do
+is: 
+</p>
+
+<h4>for some people, the performance of the logging library when logging
+is switched off is critical</h4>
+
+<p>For me, it was quite weird to discover this main concern, as it almost
+means "how fast is your library if I don't use it?".
+</p>
+
+<p>When you see the surprising overheads of Pantheios competitors when
+logging is turned off, you are also curious to understand how this is
+possible since some of them are supposed to use some macro magic to
+remove all the logging code at compile time, an hence they should also
+have an <i>unmeasurably low impact</i>. Why is it not the case, and
+what does Pantheios special which correct it?
+</p>
+
+<p>The answer is simple, by "switching logging of", Matthew means doing
+it "at run-time". It was not obvious for me, as in my conception of
+logging, you care of logging performance only for the release version,
+which you build without activating some levels, "at compile time".
+So, the previous conclusion can be corrected to:
+</p>
+
+<h4>for some people, the ability to switch off some logging levels at
+run-time and have an unmeasurably low impact for this hiden levels
+is critical</h4>
+
+<p>So, Pantheios is an "ordered levels oriented library", with a particular
+focus on the efficiency of "run-time filtering".
+</p>
+
+<h4>Pantheios syntax</h4>
+
+<p>Although Pantheios is quite well documented, there is no real
+simple tutorial showing a basic example. Fortunatly, there are numerous
+examples in the source code, which give a first taste of the library.
+I choose the "example_cpp_file.cpp":
+</p>
+
+<pre>
+/* Pantheios Header Files */
+#include &lt;pantheios/pantheios.hpp>          // Pantheios C++ main header
+#include &lt;pantheios/inserters/args.hpp>     // for pantheios::args
+
+#include &lt;pantheios/backends/bec.file.h>    // be.file header
+
+/* Standard C/C++ Header Files */
+#include &lt;exception>                        // for std::exception
+#include &lt;string>                           // for std::string
+#include &lt;stdlib.h>                         // for exit codes
+
+/* ////////////////////////////////////////////////////////////////////// */
+
+// Define the fe.simple process identity, so that it links if using fe.simple
+PANTHEIOS_EXTERN_C const char   FE_SIMPLE_PROCESS_IDENTITY[]    =   "example_cpp_file";
+
+/* ////////////////////////////////////////////////////////////////////// */
+
+int main(int argc, char **argv)
+{
+  try
+  {
+    pantheios::log_DEBUG("main(", pantheios::args(argc, argv), ")");
+
+    pantheios::log_NOTICE("stmt 1");
+
+    // Set the file name for the local back-end, truncating the 
+    // file's existing contents, if any.
+    pantheios_be_file_setFileName("log.local", PANTHEIOS_BE_FILE_F_TRUNCATE, PANTHEIOS_BEID_LOCAL);
+
+    pantheios::log_NOTICE("stmt 2");
+
+    // Set the file name for the remote back-end.
+    pantheios_be_file_setFileName("log.remote", 0, PANTHEIOS_BEID_REMOTE);
+
+    pantheios::log_NOTICE("stmt 3");
+
+    // Set the file name for all back-ends.
+    pantheios_be_file_setFileName("log.all", 0);
+
+    pantheios::log_NOTICE("stmt 4");
+
+    pantheios::log_DEBUG("exiting main()");
+
+    return EXIT_SUCCESS;
+  }
+  catch(std::bad_alloc &)
+  {
+    pantheios::log_CRITICAL("out of memory");
+  }
+  catch(std::exception &x)
+  {
+    pantheios::log_ALERT("Exception: ", x);
+  }
+  catch(...)
+  {
+    pantheios::puts(pantheios::emergency, "Unexpected unknown error");
+  }
+
+  return EXIT_FAILURE;
+}
+</pre>
+
+<p>Surprinsgly, Pantheios is not macro based. There is only
+a couple of "variadic macros", which are so not available on all compilers.
+I see here a big problem: the macro interface of Pantheios is not portable.
+I think it is a very serious limitation, because someone may use these macros
+to develop a big project, and a day, they will try to port it on another
+system with a different compiler which does not support variadic macros,
+and all their logging code will break. I think that the public API of a
+logging library should only use "standard C++".
+</p>
+
+<p>This is because Pantheios uses a kind of "C style loggin syntax", which
+"does not easily permit compile-time filtering". As a consequence,
+variadic macros where introduced in order to try to "correct a design flaw",
+and the result is worst, because compile time filtering is available on some
+systems, and not on some others, making Pantheios usage non portable, while
+Pantheios is originally highly portable. As a result, I consider Pantheios
+does not implement compile time filtering, and does not provide a
+"macro based API".
+</p>
+
+<p>However, it should be possible to "use a macro trick" to correct this.
+</p>
+
+<h4>What about the ease of use</h4>
+
+<p>So, Pantheios does not have a valuable "macro based API", so Pantheios can not
+automatically log the file name and the line number for you.
+However, if you use the variadic macros, it does. It will insert a "prefix"
+before your log message, which is by default the file name in C, and the file name +
+the line number in C++. You are free to define you own prefix (interesting feature):
+</p>
+
+<pre>
+#define PANTHEIOS_STRINGIZE_(x)     #x
+#define PANTHEIOS_STRINGIZE(x)      PANTHEIOS_STRINGIZE_(x)
+
+ /* Define the defaults here, in case we use them below. */
+# define PANTHEIOS_FILELINE_A                   __FILE__ "(" PANTHEIOS_STRINGIZE(__LINE__) "): "
+# define PANTHEIOS_FILELINE                     PANTHEIOS_FILELINE_A
+
+ /* Now define the prefix, if the user has not already done so. */
+# if !defined(PANTHEIOS_TRACE_PREFIX)
+#  define PANTHEIOS_TRACE_PREFIX                PANTHEIOS_FILELINE
+#  ifdef __cplusplus
+#   define PANTHEIOS_TRACE_LOG_PREFIX           ::pantheios::pan_slice_t(PANTHEIOS_FILELINE, STLSOFT_NUM_ELEMENTS(PANTHEIOS_FILELINE) - 1)
+#  else /* ? __cplusplus */
+#   define PANTHEIOS_TRACE_LOG_PREFIX           PANTHEIOS_FILELINE
+#  endif /* __cplusplus */
+# else /* ? PANTHEIOS_TRACE_PREFIX */
+#  define PANTHEIOS_TRACE_LOG_PREFIX            PANTHEIOS_TRACE_PREFIX
+# endif /* !PANTHEIOS_TRACE_PREFIX */
+</pre>
+
+<p>As you can see, the C++ code uses an unknown <tt>pan_slice_t</tt> object.
+The doc says:
+</p>
+
+<blockquote>
+This structure represents a character string as a slice,
+in the form of a pointer to the first character, and a count
+of the number of characters in the slice.
+</blockquote>
+
+<p>It is a little more than a stupid wrapper of char *, which
+introduce a concept of "lazy length", which is not very well documented.
+It also just hold a pointer to the char string, and does not do any
+allocation or copy. In fact, its just a way to associate a
+<tt>const char *</tt> with its lebngth.
+</p>
+
+<p>So, thanks to the PANTHEIOS_TRACE_LOG_PREFIX macro, there is no extra memory
+allocation if you want to log the file name, by using the variadic macros,
+of by writing for example:
+</p>
+
+<pre>
+pantheios::log_NOTICE( PANTHEIOS_TRACE_LOG_PREFIX, "Hello World!" );
+</pre>
+
+<p>However, what about if a "dummy user" did not look at the source code
+(the existence of PANTHEIOS_TRACE_LOG_PREFIX is not documented), and writes:
+</p>
+
+<pre>
+pantheios::log_NOTICE( __FILE__, "Hello World!" );
+</pre>
+
+<p>Then, the proper template function <tt>log_NOTICE</tt> will be instanciated,
+depending on the given argument number:
+</p>
+
+<pre>
+template&lt;typename T0>
+inline int log_NOTICE(T0 const& v0);
+
+template&lt;typename T0, typename T1>
+inline int log_NOTICE(T0 const  &v0, T1 const& v1);
+
+template&lt;typename T0, typename T1, typename T2>
+inline int log_NOTICE(T0 const  &v0, T1 const& v1, T2 const& v2);
+
+template&lt;typename T0, typename T1, typename T2, typename T3>
+inline int log_NOTICE(T0 const  &v0, T1 const& v1, T2 const& v2, T3 const& v3);
+
+// And so on...
+</pre>
+
+<p>There are 32 different <tt>log_NOTICE</tt> defined like this.
+All the <tt>log_XXX</tt> follow the same schema, ie <tt>log_EMERGENCY</tt>,
+<tt>log_ALERT</tt>, <tt>log_CRITICAL</tt>, <tt>log_ERROR</tt>,
+<tt>log_WARNING</tt>, <tt>log_NOTICE</tt>, <tt>log_INFORMATIONAL</tt>
+and <tt>log_DEBUG</tt>.
+</p>
+
+<p>This task is handled by a Ruby script, which can be modified to
+generated a different number of function of each level, or to introduce
+a new level.
+</p>
+
+<p>All this 256 template functions do almost the same: they
+"filter" (i.e do nothing) the log request if their corresponding
+level is switched off, otherwise they "dispatch" the given arguments to the macro
+<tt>PANTHEIOS_INVOKE_SHIM_PAIR_</tt>, which is defined like this:
+</p>
+
+<pre>
+# define PANTHEIOS_INVOKE_SHIM_PAIR_(x)     c_str_len_a(x), c_str_data_a(x)
+</pre>
+
+<p>where <tt>x</tt> is one argument given to <tt>log_NOTICE</tt>,
+and <tt>c_str_len_a</tt> and <tt>c_str_data_a</tt> are functions from
+the STLSoft library
+</p>
+
+<p>The "dispatching" operation will then generate a <tt>pan_slice_t</tt> object
+from the given "shim pair"., and will finally be passed to the main logging
+function of Pantheios core:
+</p>
+
+<pre>
+PANTHEIOS_CALL(int) pantheios_log_n(    pan_sev_t                       severity
+                                    ,   size_t                          numSlices
+                                    ,   pantheios::pan_slice_t const*   slices);
+                                    ,   pan_slice_t const*              slices);
+</pre>
+
+<p>The weird thing is that if the given object is already a <tt>pan_slice_t</tt>,
+it will still be split by the <tt>c_str_len_a</tt> and <tt>c_str_data_a</tt>
+functions overloaded by Pantheios in order to recognize its type
+<tt>pan_slice_t</tt> (that STLSoft doesn't know):
+</p>
+
+<pre>
+/** \brief Returns a nul-terminated non-NULL C-style string representing the slice */
+inline char const* c_str_ptr(pan_slice_t const& s)
+{
+    return s.ptr;
+}
+
+/** \brief Returns a possibly non-nul-terminated non-NULL C-style string representing the slice */
+inline char const* c_str_data_a(pan_slice_t const& s)
+{
+    return c_str_ptr(s);
+}
+
+/** \brief Returns the number of characters in the length of the C-style string representing the slice */
+inline size_t c_str_len_a(pan_slice_t const& s)
+{
+    return s.len;
+}
+</pre>
+
+<p>And another one new <tt>pan_slice_t</tt> object (the same one in fact) will
+be generated. But the design of Pantheios make it difficult not to do so.
+We can hope the compiler will be able to optimize that, "which is something
+I like to think".
+</p>
+
+<p>The <tt>pantheios_log_n</tt> is the real entry point into the core of
+Pantheios. It creates an <tt>stlsoft::auto_buffer</tt> where all
+all the given <tt>pan_slice_t</tt> will by concatenated and stored
+This is done in one call to <tt>std::copy</tt> by giving it a
+<tt>stlsoft::cstring_concatenator_iterator</tt>, which will in fine
+call <tt>memcpy</tt>.
+</p>
+
+<p>The <tt>auto_buffer</tt> will try to allocate enought memory on the stack,
+and will use the heap otherwise. After having been filled, this buffer
+is given to <tt>pantheios_be_logEntry</tt>, and that's it
+for the core of Pantheios, because as the previous function name suggests it
+(<tt>pantheios_<b>be</b>_logEntry</tt>), we are jumping to the "back end" code.
+</p>
+
+<p>When the back end function returns, the memory is released. So, Pantheios
+is a "synchronous logging library". Because the core anly see and understands
+chunks of text (<tt>pan_slice_t</tt>), which also makes it "type safe",
+all the formatting must be done at
+"the source code level", including the "trace prefix" ("header"). 
+</p>
+
+<p>So, at this stage, the rest of the overhead of the library depends of
+the back end, which "has the hability to slow down or crash the library".
+Hoerver, the call to <tt>pantheios_be_logEntry</tt> is guarded by a
+<tt>try...catch</tt> block in order not to propagate a thrown exception.
+</p>
+
+<h4>What about the ease of use</h4>
+
+<p>Pantheios says about itself it is "simple to use and extend".
+In my opinion, this is not really the case.
+</p>
+
+<p>The first thing that really chocked me is the following line:
+</p>
+
+<pre>
+// Define the fe.simple process identity, so that it links if using fe.simple
+PANTHEIOS_EXTERN_C const char   FE_SIMPLE_PROCESS_IDENTITY[]    =   "example_cpp_file";
+</pre>
+
+<blockquote>
+The application must define this variable, to contain the application name/identity.
+</blockquote>
+
+
+<p>This has to be done in all program using Pantheios (CONFIRM), in order
+not to have a link error (unresolved external symbol FE_SIMPLE_PROCESS_IDENTITY).
+</p>
+
+<p>I think for a "dummy", the link error is the worst one. It is even more
+embarassing than a nested template error, because there is no source file
+incrimined, and also because many beginners have difficulties to make the
+dsitinction between declaration/definition and the concept of linkage.
+</p>
+
+<p>So I think to impose to define such a definition in order to link the
+program is not a good thing. That's even more wierd that Pantheios
+automaticcally handles the inclusion of some library files.
+</p>
+
+<p>Regarding the ease of extend, I don't agree neither. I think what the author
+means by "extend" is to add its own back end. But I think the first thing
+people want to customize is the syntax and the choice of levels.
+And changing the predefined levels / adding a new one is not something easy.
+It is not so difficult, but it is not as simple as "defining a new constant",
+because the user also has to edit the Ruby script and use it to regenerate
+some files. May be it is flexible, but not very convenient. 
+</p>
+
+<h4>Exception safety</h4>
+
+<h4>Thread safety</h4>
+
+<h4>Users feedback</h4>
+
+<p>Users can send feedbacks about Pantheios on the "stfsoft mailinglist".
+Few of them did, which is still more than for many others logging libraries.
+The author of "Simple Log" "take to mean that nobody needs
+help in order to make it work".
+One of the reported problem with Pantheios was causing conflicts with Insure++,
+a code analysis tool. This illustrates the "cost of a logging library". 
+</p>
+
+<p>A user also do a feature request, where he expose his "usage of logging":
+</p>
+
+<blockquote>
+<p>
+I have slightly different requirements for a logging library. I
+need to define a hierarchy of logged events, allowing custom grouping and
+precise selection.
+</p>
+<p>
+For example, let's say I want to monitor traffic on a FTP site. I want to
+be able to switch between the following states (at runtime, of course):
+</p>
+<ul>
+<li>a) all network traffic is logged.</li>
+<li>b) network traffic on the control connection is logged.</li>
+<li>c) network traffic on the data connection is logged.</li>
+<li>d) ...</li>
+</ul>
+</blockquote>
+
+<p>This is a concrete example of the need of "channels". Pantheios does not
+implement them 
+</p>
+
+</body>
+</html>

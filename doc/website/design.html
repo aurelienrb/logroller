@@ -1,0 +1,89 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>The design of LogRoller</h3>
+
+<h4>A non powerful library which is proud to be stupid!</h4>
+
+<img src="images/573791_balancing_act_.jpg" width="150" heigh="109" />
+
+<p>The traditional way to design a logging library is the following:
+</p>
+
+<pre>
+client source code -> extract log data -> filtering -> output formatting -> log output
+</pre>
+
+<p>The traditional log output is the console, but it can be a plain text file,
+an html/xml file, a socket...
+</p>
+
+<p>This adds <b>a lot</b> of complexity to logging, because
+you have to worry about the filtering of you mog requests plus
+the configuration of the ouput(s). All your attention is lost
+to the configuration and the use of this uneeded features at ou
+level wich is : getting the information to log.
+This is the only thing you should care when introducing logging
+functionality into your software. Everything else is pollution, YAGNI!
+</p>
+
+<p>LogRoller does not care about these questions.
+Its typical usage implies the following steps:
+</p>
+
+<pre>
+client source code -> extract log data -> put in buffer
+</pre>
+
+<p>In fact, LogRoller is more a protocol to store data in memory than a
+complete logging framework. It does not do any formatting by itself.
+The only data manipulation done is made by third party code,
+which mostly consist in the standard stream library of your compiler
+and your own code (<tt>operator &lt;&lt;()</tt>).
+</p>
+
+<p>LogRoller use this libraries to convert into a character strings objects
+that are not. For example, an interger will be converted and formatted
+using <tt>std::ostream</tt> and manipulators from <tt>iomanip</tt>.
+</p>
+
+<p>Something very important is that LogRoller does not do any filtering.
+Typical logging libraries use a concept of message level to decide at runtime
+or even at compile time if your request to log something should be satisfied
+or not.
+</p> 
+
+<p>While it would be possible to implement such a thing in LogRoller,
+it is not the case. More a more personal and detailed explanation of
+why, your can read my personal writing on level based messages.
+</p>
+
+<p>To make it short, let's say that the philisophy of LogRoller is to let
+the final user to decide if he wants or not to see a particular king of
+message. LogRoller just has the notion of a message type, that's all.
+It's up to the final user to decide if he want to see or nor messages
+of a particular type. The filtering possibilities are in consequences
+much flexible. LogRoller also give detailled information about the
+location of each message: source file name, line number, function name
+(if supported by your compiler). This give another criterea of filtering
+which is in my opinion much sharp that an arbitrary message level.
+In effect, most of the time you want to focus on all the possible messages
+of a particular piece of code. At the time you compiled this code,
+you used to think it was bug free and so you removed all the basic debug
+messages. But after several hours of running, your application crashed in that
+piece of code and you really want to get as much information as possible
+in order to understand what happened. That's why LogRoller does not
+help to filter message logging.
+</p>
+
+<p>I think that message filtering and logging should be done else where,
+why not in an external process. The only concern of LogRoller is to
+save log info in a very efficient maner, so the overhead of logging
+becomes invisible, even if eveything that can be logged is logged.
+</p>
+
+</body>
+</html>

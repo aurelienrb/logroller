@@ -1,0 +1,83 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>What is logging good for</h3> 
+
+<img src="images/740705_dos_prompt_traceroute_1.jpg" width="150" heigh="112" />
+
+<p>According to the different sources, we can identify several
+ways people want to access the data of the log file:
+</p>
+
+<ul>
+<li>instant reading (output in a console for example) : tracing, live debugging...</li>
+<li>delayed reading (consult the log file at the end of execution for example) : performance analysis, ...</li>
+<li>error diagnostic (dump a file if an error occured, like a crash) : post-mortem analysis, ...</li>
+</ul>
+
+<p>We can also identify different purpose of logging:
+</p>
+
+
+<p>Regarding the way data needs to be filtered:
+</p>
+
+<ul>
+<li>filtering is done by the application itself at compile time</li>
+<li>filtering is done by the application itself at runtime time</li>
+<li>the application do no filtering, it is optionaly done by another tool when
+consulting the log data (log viewer, SQL request,...)</li>
+</ul>
+
+<p>Regarding the way data needs to be saved:
+</p>
+
+<ul>
+<li>no need to save data (console output...)</li>
+<li>save data only on some condition</li>
+<li>always save data</li>
+</ul>
+
+<p>People also have many different needs regarding the place log data should
+be saved:
+</p>
+
+<ul>
+<li>several files for a single process (error.log, warning.log, ...)</li>
+<li>one file for one single process</li>
+<li>one file for all the instances of a same application (webserver)</li>
+<li>centralized logging from different sources (database, system logger, logserver)</li>
+</ul>
+
+<h4>special considerations regarding postmortem logs</h4>
+<p>Generating a postmortem log can be verry difficult, because it often has to
+be done in the context of a crash, that is a dying application.
+The memory can be completely corrupted, or it can be full and the system is
+running under very low ressource, etc... Handling such problems should be
+of the responsibility of the crash handler (like setting up a new stack in case
+of a stack overflow), but a well designed logging library should allows she crash
+handler to dump as much information as possible, without running into trouble.
+</p>
+
+<h4>special considerations regarding log saving and sending</h4>
+<p>When generating post execution logs in the context of an open source software
+or in teh context of debugging a closed source software within the developpement
+team, there is almost no restriction regarding the type of information that can be
+put in the log file.
+</p>
+
+<p>However, people developping closed source software may worry about the type
+of information that is dumped in the log file at the client side. In particular,
+they might not appreciate that anyone can read all the logged messages, as well
+as the source file and function names, etc...
+</p>
+
+<p>The perfect logging library should also have this in mind, and provide an
+easy way to dump the data in a non human readable format.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+#include "logroller.h"
+
+int main(void)
+{
+  log_debug("Hello World");
+  log_debug("How are you?");
+
+  
+ 
+/*
+  static const char
+  log_str[] __attribute__ ((section (".logdata"))) = "log_str",
+  * str __attribute__ ((section (".logidx"))) = log_str;
+*/
+
+/*
+  static const char log_str1[]
+  __attribute__ ((section (".logdata"))) = "str1";
+  static const char log_str2[]
+  __attribute__ ((section (".logdata"))) = "str2";
+  static const char log_str3[]
+  __attribute__ ((section (".logdata"))) = "str3";
+
+
+  static const char * str1
+  __attribute__ ((section (".logidx"))) = log_str1;
+  static const char * str2
+  __attribute__ ((section (".logidx"))) = log_str2;
+  static const char * str3
+  __attribute__ ((section (".logidx"))) = log_str3;
+  
+  extern const char * end_mark;
+  __asm__(".pushsection .logidx, 1, \"aw\",@progbits");
+  __asm__("end_mark: .string \"\"");
+  __asm__(".popsection");
+*/
+
+  /*static const char str[] = "TEST";*/
+    /*__asm__(".section .logindx, \"a\", @progbits\n .string \"hello\"");*/
+
+    /*
+    static const struct log_entry_point entry
+    __attribute__((section(".logstr,\"a\",@nobits#"))) = { "Hello" "\0" __FILE__ "\0" MAKESTR(__LINE__) };
+    
+   
+    log_scope_enter(&entry_ref);
+*/
+    return 0;
+}
+

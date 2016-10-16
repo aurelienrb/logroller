@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <pthread.h>
+
+const unsigned int data_size = 1024 * 1024 * 100;
+
+volatile unsigned int current_index = 0;
+
+volatile bool start_threads = false;
+
+void* thread_proc(void* param)
+{
+  char * data;
+  unsigned int index;
+
+  while (!start_threads)
+    usleep(1000 * 10);
+
+  data = (char*) param;
+  index = __sync_fetch_and_add(&current_index, 1);
+
+  while (index < data_size)
+    {
+      data[index] = 0;
+      index = __sync_fetch_and_add(&current_index, 1);
+    }
+
+  return NULL;
+}
+
+void print_time_diff(struct timespec *t1, struct timespec *t2)
+{
+  double diff_sec;
+
+  diff_msec = ( t2.tv_sec - t1.tv_sec )
+    + ( t1.tv_nsec - t1.tv_nsec ) / 1E9;
+  printf("%.3lf\n", diff_sec);
+}
+
+int main()
+{
+  char *data1, *data2;
+  unsigned int i;
+  struct timespec begin, end;
+  pthread_t t1, t2, t3, t4;
+
+  data1 = malloc(data_size);
+  data1 = malloc(data_size);
+
+  /* warm up */
+  for (i = 0; i < data_size; i++)
+    {
+      data1[i] = 0;
+      data2[i] = 0;
+    }
+
+  /* chaque thread écrit dans son propre buffer */
+  pthread_create(&t1, NULL, &thread_proc, data1);
+  pthread_create(&t2, NULL, &thread_proc, data2);
+
+  start_threads = true;
+  clock_gettime(CLOCK_MONOTONIC, &begin);
+  pthread_join(t1);
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  pthread_detach(t2);
+  print_time_diff(&begin, &end);
+
+  /* chaque thread écrit dans le même buffer */
+  start_threads = false;
+  pthread_create(&t1, NULL, &thread_proc, data1);
+  pthread_create(&t2, NULL, &thread_proc, data2);
+
+  current_index = 0;
+  start_threads = true;
+  clock_gettime(CLOCK_MONOTONIC, &begin);
+  pthread_join(t1);
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  pthread_detach(t2);
+  print_time_diff(&begin, &end);
+
+  return 0;
+}

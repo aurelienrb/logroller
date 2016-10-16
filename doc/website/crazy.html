@@ -1,0 +1,41 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Log compression</h3>
+
+<img src="images/38846_i0_-_lost_bits_5.jpg" width="150" heigh="112" />
+
+<p>Embedding a basic log processor inside the same binary file has however
+some advantages, if we can assume the initialized data section is always
+loaded at the same memory address by the OS.
+</p>
+
+<p>In effect, it is possible to directly dump the binary form of the log,
+as it resides in the buffer. The dumped binary data may mostly consist in
+a collection of pointers to literal strings, and is therefore unexploitable,
+excepted by an other instance of the same binary file.
+</p>
+
+<p>In case of a crash of your application for example, a last chance routine
+can be executed an dump on disk the content of the log buffer. Then, it can
+start again itself in a special mode, where it will read this data, format
+them in a plain text file for example, and send the file through the internet
+for example.
+</p>
+
+<p>It can even skip the use of an intermediate file, and directly read into
+the memory buffer of the over instance, after the later has granted it the
+right to do so.
+</p>
+
+<p>Even more, it can directly send the plain binary data, and you can use the
+same version of your application to decode and format it the way you want.
+By doing so, the file you will transmit over the net will be much smaller than
+a plain text file.
+</p>
+
+</body>
+</html>

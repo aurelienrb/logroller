@@ -1,0 +1,546 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>The concept of channels</h3>
+
+<img src="images/28628_soundmixer_v2.jpg" width="150" heigh="112" />
+
+<p>I have no idea who first had the idea of logging channels, but I fell it
+is related to the "log4j project". By the way, it is the essence of this
+library (they call them "loggers"), it is present in all its clones, and
+it has influences other libraries too.
+</p>
+
+<p>Here is the basic idea, as it is implemented by log4j:
+</p>
+
+<p>The logging space is split in several <i>channels</i>, which can themselves
+be subdivised into sub-channels, in a hierarchical way.
+</p>
+
+<p>What I don't like in the classical approach of channel is the way the user
+has to specify a particular channel. A typical example, following the log4j
+spirit, is to attribute a new channel to a particular <i>software component</i>,
+for example, a class:  
+</p>
+
+<pre>
+class Socket
+{
+public:
+    void OpenConnection();
+    void CloseConnection();
+    void SendData();
+    
+private:
+    static LogChannel log;
+};
+
+LogChannel Socket::log = LogChannel::New( "Socket" );
+
+void Socket::OpenConnection()
+{
+    log.Trace( "Opening connection" );
+}
+
+void Socket::CloseConnection()
+{
+    log.Trace( "Closing connection" );
+}
+
+void Socket::SendData()
+{
+    log.Trace( "Sending data" );
+    if ( /*error*/ )
+    {
+        log.Error( "Error sending data" );
+        return;
+    }
+}
+</pre>
+
+<p>I don't like this usage at all, because you have to write much more
+code related to logging (create one channel for each software component),
+plus thinking about the channels, their hierarchy, etc...
+You also have to wonder, each time you log something, on which channel
+you should do it. That "makes you to think".
+</p>
+
+<p>So, the first time I discovered this concept, I was not really convinced
+about it. For me, it was "a feature that seems poweful, but which is not so much".
+This is because I had never had the need of channels, and I was curious to
+know what their could be good for. A day, "when looking at Pantheios", I read
+a scenario which made me change my mind. Here is a quote of "the original post":
+</p>
+
+<blockquote>
+<p>
+I have slightly different requirements for a logging library. I
+need to define a hierarchy of logged events, allowing custom grouping and
+precise selection.
+</p>
+<p>
+For example, let's say I want to monitor traffic on a FTP site. I want to
+be able to switch between the following states (at runtime, of course):
+</p>
+<ul>
+<li>a) all network traffic is logged.</li>
+<li>b) network traffic on the control connection is logged.</li>
+<li>c) network traffic on the data connection is logged.</li>
+<li>d) ...</li>
+</ul>
+</blockquote>
+
+<p>Let's say we hav 2 classes, one named <tt>ControlConnection</tt> and the other
+<tt>DataConnection</tt>. Both of them use the previous <tt>Socket</tt> class.
+</p>
+
+<p>With the classical approach (i.e, the log4j one), each of this class will
+create its own channe, for example <tt>Network.Socket</tt>,
+<tt>Network.FTP.Control</tt> and <tt>Network.FTP.Data</tt>. This way,
+it is possible to easily follow all the network traffic, or just the
+network traffic on the control or the data connection.
+</p>
+
+<h4>Are channels a good idea in C++?</h4>
+
+<p>It looks nice and poweful. But is it really? I think it is just a
+way to filter data depending on their origin (<i>software component</i>).
+It could be easy and much simpler to get almost the same result just
+by using the source file name as a filtering criteria, as the traditional
+way to implement a particular <i>software component</i> component it to
+put it in its own translation unit, i.e source file. This concept
+of channel just adds the concept of hierarchy, which make it simpler to
+the final user to find and filter what he want with a good log viewer.  
+</p>
+
+<p>Regarding the final result in the log file, what happen if a socket
+can't write the data in the <tt>SendData</tt> function? Then, an error
+message will be logged. When you will read it, you will try to guess
+on which socket the error occured: the one used by <tt>ControlConnection</tt>
+or the one used by <tt>DataConnection</tt>? May be it will be easy to guess,
+may be not. But the fact is you have to guess, so it "makes you think".
+</p>
+
+<!--pre>
+[Network.FTP.Control] (ftpcontrol.cpp)  Starting the Control loop
+[Network.Socket]      (socket.cpp)      Opening connection
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.FTP.Control] (ftpcontrol.cpp)  Starting a new thread
+[Network.FTP.Data]    (ftpdata.cpp)     Starting a new Data transfert
+[Network.Socket]      (socket.cpp)      Opening connection
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.FTP.Control] (ftpcontrol.cpp)  Starting a new thread
+[Network.FTP.Data]    (ftpdata.cpp)     Starting a new Data transfert
+[Network.Socket]      (socket.cpp)      Opening connection
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Closing connection
+[Network.FTP.Data]    (ftpdata.cpp)     Data transfert succeeded
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+<font color="red">[Network.Socket]      (socket.cpp)      Error sending data</font>
+[Network.FTP.Data]    (ftpdata.cpp)     Data transfert failed
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Closing connection
+[Network.FTP.Data]    (ftpdata.cpp)     Data transfert succeeded
+[Network.Socket]      (socket.cpp)      Sending data
+[Network.Socket]      (socket.cpp)      Closing connection
+[Network.FTP.Control] (ftpcontrol.cpp)  End of Control loop
+</pre-->
+
+<p>Why does it makes you think? Because it is impossible at the <tt>Socket</tt>
+level to know the kind of data which is send, it depends of the caller.
+So, I don't think that creating channels on a  <i>software component</i> is
+the best approach, because a <i>software component</i> by itslef
+is meaningless, because it will be reused and included in another
+<i>software component</i> and become part of it, itself part of another
+<i>software component</i>, and so on. <b>The same <i>software component</i>
+can have very different contexts depending on its owner/caller</b>.
+</p>
+
+<p>So, "in my opinion", a better way to use the concept is to make it possible
+to a <i>software component</i> to inherit the channel of its caller, i.e
+to split the <i>logging flow</i> in channels instead of the
+<i>logging space</i>.
+</p>
+
+<p>In Java, I think it is quite difficult to do it. May be you have to change
+the constructor of <tt>Socket</tt> so it accepts a channel to log on, and
+modify <tt>ControlConnection</tt> and <tt>DataConnection</tt> to pass the
+correct channel to their attached socket. In my opinion, this is unacceptable,
+because "it introduces the concept of logging in your public interface",
+and forces you to "modify you code design to use your logging library".
+</p>
+
+<p>In C++, we have deterministic destructors, which already gave us the ability
+to develop great concepts like the RAII or "scopped logging". Yet again, they
+will be useful to implement <i>execution flow typing</i>. 
+</p>
+
+<pre>
+void Socket::SendData()
+{
+    log::trace( "Sending data" );
+    if ( /*error*/ )
+    {
+        log::error( "Error sending data: ..." );
+        return;
+    }
+}
+
+// typing the execution flow in an unsafe way
+void ControlConnection::Run()
+{
+    log::set_channel( "FTP.Control" );
+    
+    // use the socket 
+
+    log::unset_channel( "FTP.Control" );
+}
+
+// typing the execution flow in an safe way
+void DataConnection::Run()
+{
+    // declare a special object which will set the channel
+    // in its contructor, and unset it in its destructor
+    log_channel channel( "FTP.Data" );
+    
+    // use the socket 
+}
+</pre>
+
+<p>By doing do, the socket will be used in 2 different contexts, which
+will be identifiable in the log output, even if it is filtered only to
+print messages from the <tt>Socket</tt> class (via filtering by file name):
+</p>
+
+<pre>
+<b>[FTP.Control]   (socket.cpp)    Opening connection
+[FTP.Control]   (socket.cpp)    Sending data
+[FTP.Control]   (socket.cpp)    Sending data</b>
+[FTP.Data]      (socket.cpp)    Opening connection
+[FTP.Data]      (socket.cpp)    Sending data
+[FTP.Data]      (socket.cpp)    Sending data
+<b>[FTP.Control]   (socket.cpp)    Sending data</b>
+[FTP.Data]      (socket.cpp)    Opening connection
+[FTP.Data]      (socket.cpp)    Sending data
+<b>[FTP.Control]   (socket.cpp)    Sending data</b>
+[FTP.Data]      (socket.cpp)    Closing connection
+<b>[FTP.Control]   (socket.cpp)    Sending data</b>
+[FTP.Data]      (socket.cpp)    Sending data
+[FTP.Data]      (socket.cpp)    Sending data
+<font color="red">[FTP.Data]      (socket.cpp)    Error sending data</font>
+<b>[FTP.Control]   (socket.cpp)    Sending data
+[FTP.Control]   (socket.cpp)    Sending data</b>
+[FTP.Data]      (socket.cpp)    Closing connection
+<b>[FTP.Control]   (socket.cpp)    Sending data
+[FTP.Control]   (socket.cpp)    Closing connection</b>
+</pre>
+
+<p>Such an output can be easily reformated by a good log viewer
+to better highlight each context of use of the socket by using
+syntax highlighting as above, or even better, by spliting the
+outputs of each execution flow in different views.
+</p>
+
+<p>If the channel spliting had been done in the log4j,
+and the output was filtered to the <tt>Network.Socket</tt>
+channel, then we would have:
+</p>
+
+<pre>
+[Network.Socket]   (socket.cpp)    Opening connection
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Opening connection
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Opening connection
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Closing connection
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+<font color="red">[Network.Socket]   (socket.cpp)    Error sending data</font>
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Closing connection
+[Network.Socket]   (socket.cpp)    Sending data
+[Network.Socket]   (socket.cpp)    Closing connection
+</pre>
+
+<p>Wich is very redundant to the source file name, and hence useless.
+In fact I don't really
+understand the advantage of channels.
+May be in Java it is a good alternative to getting the source file name
+from each logging request, because getting the source file
+and the function names of each call to a log function
+(through reflection/the thread call stack?) would considerably slow down the application.
+But in C++ we can get this informations "for free", so I think
+it turns the tide <!-- change la donne-->, and you don't have to deal
+with this burden of creating channels in each source file.
+
+If you have a better explanation and a good and realistic
+example that can show me the interest, please don't hesitate to
+contact me. But before, please, continue to read this article until its ending.
+</p>
+
+<p>Because even the above showing how an hypotetical <tt>log_channel</tt>
+could be use to add <i>execution context</i> to a particular call, I think
+it is not really a good idea, because a good log viewer can automatically
+generate a call stack for each log message. 
+</p>
+
+<p>For example, take the following:
+</p>
+
+<pre>
+void Function1()
+{
+    log_trace() &lt;&lt; "Hello from Function1!\n";
+}
+
+void Function2()
+{
+    log_trace() &lt;&lt; "Calling Function1\n";
+    Function1();
+    log_trace() &lt;&lt; "It worked!\n";
+}
+
+void Function3()
+{
+    log_trace() &lt;&lt; "Calling Function2\n";
+    Function2();
+}
+<pre>
+
+<pre>
+If the logging library uses macros, it can transparently instanciate
+a local object for each log request, in order to do "scope logging".
+For example, the above code could be expanded in something like:
+</pre>
+
+<pre>
+class scope_logger
+{
+public:
+    scope_logger( const char *FileName, const char *FuncName ):
+        file_name( FileName ),
+        func_name( FuncName )
+    {
+        std::cout &lt;&lt; "ENTER: [" &lt;&lt; this->file_name
+            &lt;&lt; "]{" &lt;&lt; this->file_name  &lt;&lt; "}\n";
+    }
+    ~scope_logger()
+    {
+        std::cout &lt;&lt; "LEAVE: [" &lt;&lt; this->file_name
+            &lt;&lt; "]{" &lt;&lt; this->file_name  &lt;&lt; "}\n";
+    }
+private:
+    const char *file_name;
+    const char *func_name;
+};
+
+void Function1()
+{
+    scope_logger scoper_line23(__FILE__, __FUNCTION__); std::cout &lt;&lt; "Hello from Function1!\n";
+}
+
+void Function2()
+{
+    scope_logger scoper_line28(__FILE__, __FUNCTION__); std::cout &lt;&lt; "Calling Function1\n";
+    Function1();
+    scope_logger scoper_line30(__FILE__, __FUNCTION__); std::cout &lt;&lt; "It worked!\n";
+}
+
+void Function3()
+{
+    scope_logger scoper_line35(__FILE__, __FUNCTION__); std::cout &lt;&lt; "Calling Function2\n";
+}
+<pre>
+
+<p>Which would output:
+</p>
+
+<pre>
+ENTER: [D:/example/test.cpp]{Function3}
+Calling Function2
+ENTER: [D:/example/test.cpp]{Function2}
+Calling Function1
+ENTER: [D:/example/test.cpp]{Function1}
+Hello from Function1!
+LEAVE: [D:/example/test.cpp]{Function1}
+ENTER: [D:/example/test.cpp]{Function2}
+It worked!
+LEAVE: [D:/example/test.cpp]{Function2}
+LEAVE: [D:/example/test.cpp]{Function2}
+LEAVE: [D:/example/test.cpp]{Function3}
+</pre>
+
+<p>A good lof viewer could then easily rebuild the call stack, by eliminating
+the redundant ENTER and LEAVE 
+</p>
+
+<pre>
+Calling Function2 (test.cpp)
+> Calling Function1 (test.cpp)
+  > Hello from Function1! (test.cpp)
+> It worked! (test.cpp)
+</pre>
+
+<p>The <tt>scope_logger</tt> can be optimized in many way. This is discussed
+in "scope logging".
+</p>
+
+<p>By doing so, we do not get the exact call stack. But, do we need it?
+The basic assumption is the following: if we want to have information about
+the execution of particular piece of code, we put some logging code in it.
+If think it is reasonable to say that the logging library will only ouput
+information of code for which it was asked for, i.e for which logging requests
+were writen.
+</p>
+
+<p>However, there is a flaw in this design. In the following example:
+<p>
+
+<pre>
+void Function1()
+{
+    log_trace() &lt;&lt; "Hello from Function1!\n";
+}
+
+void Function2()
+{
+    Function1();
+    log_trace() &lt;&lt; "Function2 succeeded!\n";
+}
+</pre>
+
+<p>
+The logging library will miss the fact that <tt>Function1()</tt> was
+called from within <tt>Function2()</tt>, and will output:
+</p>
+
+<pre>
+Hello from Function1! (test.cpp)
+Function2 succeeded! (test.cpp)
+</pre>
+
+<p>
+I don't have any magic solution for this issue, just some ideas:  
+</p>
+
+<ul>
+<li>A very good log viewer
+could parse the source code of the given file in order to bind the line
+number with a function name. I think this is very difficult to do, and also
+to use, because the exact source code must be available.</li>
+<li>A less complex way could be to log the address of the current
+instruction pointer (eip on x86). Then, given the map file outputed
+by the linker, it should be possible to bind a particular address
+with a function name, even without using __FUNCTION__ not __FILE__.</li>
+<li>If the program is compiled in Debug and/or its symbols are 
+available (not striped), it should even be possible to do the same
+without using a map file.</li>
+<li>Using some specific compiler extensions can help to do more.
+For example, the VC++ <a href="http://msdn2.microsoft.com/en-us/library/64ez38eh(VS.80).aspx">_ReturnAddress</a>
+intrinsic can give a way to know the address where this function
+was called from, hence give a way to know its name by using one of the
+above techniques</li>
+</ul>
+
+<p>
+So, there is not easy way to solve this, and it can't be reasonabily done
+in real-time, i.e for synchronous logging. So, the only solution I see
+is to ask the developer "to solve this problem for us", by informing him
+of this issue and giving the recomandation to always put a logging
+instruction at the (almost) beggining of a function, if there are other
+logging instructions inside. We can also provide a <tt>log_scope</tt>
+macro is the programmer does not know what to log:
+</p>
+
+<pre>
+void Function1()
+{
+    log_trace() &lt;&lt; "Hello from Function1!\n";
+}
+
+void Function2()
+{
+    log_scope(); // does nothing more than instanciating a scope_logger
+    Function1();
+    log_trace() &lt;&lt; "Function2 succeeded!\n";
+}
+</pre>
+
+<p>This requierement breaks my so loved rule of "asking the user to
+solve a design issue". However, because I am the one who dicted this
+rule, I am also the one who can violate it without worrying too much :-)
+</p>
+
+<p>More seriously, I think it can be acceptable, for several reasons.
+First, it does not affect the way you log code, it is just an extra
+to help you to better understand the log output. You can still choose
+the classic flat log output if this issue embarass you. You can also
+easily deactivate it by redifining the log macros.
+Then, this need to put something related to loggin at the beggining
+of your functions can be easily done with the help of other useful
+macros.
+</p>
+
+<p>For example, the <tt>assert</tt> macro can be modified to instanciate
+a <tt>scope_logger</tt>:
+</p>
+
+<pre>
+void Function1()
+{
+    log_trace() &lt;&lt; "Hello from Function1!\n";
+}
+
+void Function2( int *P )
+{
+    assert( P );
+    
+    Function1();
+    log_trace() &lt;&lt; "Function2 succeeded!\n";
+}
+</pre>
+
+<p>It is also possible to use a replacement macro mapped
+to the logging library, like "the <tt>verify</tt> macro": 
+</p>
+
+<pre>
+void Function1()
+{
+    log_trace() &lt;&lt; "Hello from Function1!\n";
+}
+
+void Function2( int *P )
+{
+    verify( P ) &lt;&lt; "P is null!";
+    
+    Function1();
+    log_trace() &lt;&lt; "Function2 succeeded!\n";
+}
+</pre>
+
+<p>If you use such a macro to do error detection in your code,
+especially to validate the given parameters, then it will
+greatly improve the reliability of the reconstructed call stack.
+</p>
+
+</body>
+</html>

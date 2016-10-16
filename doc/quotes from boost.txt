@@ -1,0 +1,104 @@
+
+
+
+
+From: Konstantin Litvinenko (Konstantin.Litvinenko_at_[hidden])
+
+> He also wanted the library to be small, and I fully agree with this.
+> A header file and that's it.
+
+    I think this is a very bad idea. Every one try to implement libs in
+headers. Why? Why not provide good and comprehensive infrastructure for C++
+development? That is major problem. No one can easily pick package from well
+known source(repository), say download it and write one or two lines in jam
+and had a working solution. With such infrastructure building complex libs
+with many dependecies will be as easy as "Just include this header and every
+things will work".
+Sorry for offtopic, but this problem must be addressed somehow :( 
+
+
+> Not anyone agree with this, Vladimir Prus for example was expecting something more configurable.
+
+    I strongly agreed with it.
+
+    You provide very good overview about logging problems and their posible
+solutions. Looking at it I see that many of them already addressed in
+http://log4cpp.sourceforge.net . We use log4cpp over 5 years in 27/7 high
+loaded multithreaded application servers on Windows/Linux. There is no good
+documentation, but concepts and even api is very close to log4j. So log4j
+documentation is perfect start. 
+
+
+From: JD (jean.daniel.michaud_at_[hidden])
+
+This has been briefly discussed in the past.
+
+Caleb Epstein:
+* Messages which won't be logged shouldn't even go through the
+formatting step. I'm pretty sure this cannot be done in a single call
+w/o macros though.
+
+Rene Riviera:
+It's possible without macros for some compilers using careful template
+instantiation.
+
+Darren cook:
+I like this idea. E.g. from Caleb's next mail:
+      BOOST_LOG (log_name) << the << things << to << output;
+      BOOST_LOGD (log_name, the << things << to << output);
+
+Daniel Frey:
+OK, although there is more to keep in mind. In our logging system, we
+also added a try/catch macro around the expression that is to be logged.
+The reason is, that we never want a log-message to abort the program.
+
+For me, macro are fine. In the logging case, it allows you to log
+anywhere in your code without any overhead (no need to declare extern
+global macro) moreover the logger instance is hidden in the library
+internal. I think it enhance code readability (in the case of a logging
+library!). Then, it avoid user to deal with the log manager
+instantiation. At first, I though it was a flaw in the library but I
+tend to think that as a feature now :)
+Again, _simplicity_ is really what should be aimed at. 
+
+
+
+
+
+From: Caleb Epstein (caleb.epstein_at_[hidden])
+
+> Hello,
+>
+> So here is the question:
+> "Is there any interest in a logging library for boost?"
+
+Of course there is.
+
+I see from later emails you've read the discussion surrounding John
+Torjo's submission (some of which was from me). Thanks for taking the
+time to do that. You might also give careful reading to Gennadiy
+Rozental's review of the library, which I believe convinced John to
+retract his submission:
+
+http://article.gmane.org/gmane.comp.lib.boost.devel/134338/
+
+You might also want to look at this message, where I took a brief stab
+at implementing some of the concepts that were raised in the library
+proposal discussion:
+
+http://article.gmane.org/gmane.comp.lib.boost.devel/135968
+
+
+
+
+From: John Torjo (john.lists_at_[hidden])
+
+> 9. Interface
+> IMO primary interface advertised by library should be macro-less.
+
+Please provide such an implementation, so that the following works:
+
+some_log << some_lengthy_function();
+
+Which, if some_log is disabled, some_length_function() is not called --
+without the use of macros.

@@ -1,0 +1,11 @@
+    int main(void)
+
+    {
+
+        char * str = "hello World!";
+
+        str[0] = 'H'; /* Ecriture en mémoire read-only: erreur fatale! */
+
+        return 0;
+
+    }

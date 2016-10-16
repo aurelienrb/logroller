@@ -1,0 +1,119 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<h3>What is a lazy logger?</h3>
+
+<img src="images/small437654_52122696.jpg" />
+
+<p><i>Lazy logging</i> is the name I gave to a simple and stupid
+programming trick that allows to log some text at almost no cost.
+This particular technic is not impacted by the length of the strings
+to log, and is thus constant time, whatever you log. It also allows
+to get at no cost some additional information like the source file name,
+the line number of your log request (C++ only), and the function name
+if you compiler supports it, all of that in a thread safe manner.
+This additional informations are really 
+available for free, if you forget the fact they will cause the size
+of your application to grow because the compiler will add this infos
+in your binary file.  
+</p>
+
+<h3>How is this possible? What are the limitations?</h3>
+
+<p>There are of course some limitation. In fact, for a general purpose
+these limitations make this technique useless. But in the special case of logging,
+they might be acceptable, and I serously think <i>lazy logging</i> can be an
+interesting idea to improve the performance of logging libraries.
+</p>
+
+<p>Before trying to define what is <i>lazy logging</i>, let's have a look at
+the following example:
+</p>
+
+<p>As you can see, this example use a combinaison of <b>static</b> and
+<b>const</b> keywords to make the wanted data to be stored in the initialised
+data section of your program. This is only possible with data which the values
+are known at compile time, i.e string literals and preprocessor constants.
+</p>
+
+<p>So, <i>lazy logging</i> is the fact to store as much data as possible in
+the initialized data section of a software, in order to eliminate the need to
+copy it. By doing so, it is possible to hold a pointer to the data with the
+assurance the data will not be modified and will always be available.
+Because it is already initialised when the program starts, and because their
+value never change, such data are also not concerned by multi-threading issues,
+even if their are static ones. They can be freely and safely accessed by several
+threads at the same time.
+</p>
+
+<p>
+</p>
+
+<p> 
+The initialisation of this data is done at compile and link time, ans they
+don't need to be deallocated, so there is almost no overhead. If you consider
+that this data would have been put anyway because you would have request them
+in order to copy them in a traditional way, we can say that the memory overhead
+is almost negligeable.
+It will only
+increase the size of your executable size (even more, depending on the section
+alignment size, this can even be not the case). But this is not really an issue
+as this information might be there
+</p>
+
+<p>So, a <i>lazy logger</i> is a logging system which is designed to be used
+in a <i>lazy logging</i> favorable context. By doing so, the characteristics
+of a <i>lazy logger</i> are the following:
+</p>
+
+<ul>
+<li>very fast and costless logging when used properly</li>
+<li>low memory consumtion</li>
+<li>fixed/limited number of previously logged message available</li>
+<li>almost no data processing: no data formatting, no data outputing</li>
+</ul>
+
+<p>One of the more important characteristics of <i>lazy logger</i> is that
+logging a message can be done in less time than the time some
+traditional loggers needs to simply evaluate if the message should be
+logged or dropped.
+</p>
+
+<p>An other one important characteristic is that logging a message can be done
+with only few bytes of memory, so it costs almost nothing to log a message.
+</p>
+
+<p>This fact drastically change the way to approach logging, and the way you
+can design a logging library, because logging is almost free. 
+</p>
+
+<p>So, behind this stupid C/C++ trick, there is also a different approach of
+logging. In particular in the following points: 
+</p>
+
+<ul>
+<li>the logger does not do ant filtering, because logging is almost free</li>
+<li>the logger does not do any output, this is the responsability of 
+another piece of software = backend</li>
+<li>this other sotware, known as the backend, is also responsible of
+filtering the output as the user wants.</li>
+<li>the type of logged message is usally limited to a
+single string literal</li>
+</ul>
+
+<h3>The backend</h3>
+
+<p>A lazy logger store unformatted data in a buffer. It does not take
+the responsability of formatting and outputing it.
+</p>
+
+<p>This is the responsabilty of the backend. 
+</p>
+
+
+pay for what you need: don't pay for output, for filtering
+
+</body>
+</html>

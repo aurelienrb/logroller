@@ -1,0 +1,322 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Logging in a multithreaded context</h3>
+
+<p>A modern logging library must be thread safe, and must provide a way to
+know from which thread a log message was generated. By thread safety, I mean
+in the way the library is implemented of course, but also in the way messages
+are outputed. Each logging message request should be atomic, and processed
+in its order of arrival. For example, if thread1 begins to generate a log
+message, then is interupted by thread2 which also generate a log message,
+then the message of thread1 should appear as logged first. I call this
+<i>atomic logging</i>. 
+</p>
+
+<p>Thread are likely to generate different messages "at the same time".
+In some scenario, it can be an issue. For example, if the messages are
+directly outputed to a console or to a file, the writing of a message
+by one thread my be interrupted by another one, which will write its
+own message at the same moment, thus generating some incomprehensive
+output. A typical example of this is the following output:
+</p>
+
+<pre>
+Message from thread1
+Message from thread1
+Message from thread2
+Message froMessage from thread1
+m thread2
+</pre>
+
+<p>One easy way to solve is to attach to each thread its own output.
+For example, each thread may output its messages in its own file.
+In the case of logging messages are appended to a log buffer, each
+thread can be attached to itw own, private buffer.
+This solution has the advantage to eliminate the need of synchronisation,
+hence reducing the work needed to implement thread safety, solving the
+problem of external dependency (to introduce the concept of threads in your
+library you need to use some platform specific calls, or an external portable
+library like boost.threads, pthread, ...). It is also faster to run, because
+the is no thread synchronisation, and thus one thread is never blocked by another
+one because of the use of your logging library (this can be an unexpected
+behaviour by your customers, and it should be documented). 
+</p>
+
+<p>In some certain circonstancies, using a single global output does not
+affect <i>message atomicity</i>, because the output manages thread safety
+itself. For example, if messages are logged into a database, several
+thread can log their own message without worrying about each others, because
+the ordering and the atomocity of log requests are delayed to the database.
+However, the logging library must do the necessary to ensure log requests
+will be stored in the same order they where first started. This mean that you
+can not first generate the SQL request from the given message to log and
+then execute this request. You must first lock the database as soon as you
+where asked for, build the log message to insert, and then execute the insert
+statement.  
+</p>
+
+<p>So, giving each thread its own output (file, buffer, ...) when applicable
+(not the case of the console, of a socket, ...) may seem very convenient. We
+can imagine such a syntax:
+</p>
+
+<pre>
+void thread_proc1()
+{
+    logger *log = init_logger( "thread1.txt" );
+    log->append( "Message from thread1" );
+}
+
+void thread_proc2()
+{
+    logger *log = init_logger( "thread2.txt" );
+    log->append( "Message from thread2" );
+}
+</pre>
+
+<p>While practical, this approach raise the following question:
+who will close the file? Or the more generalized one:
+Who is responsible of releasing the resource attributed to each thread?
+</p>
+
+<p>The obvious answer is "the one who allocated it", i.e the thread itself.
+But I personally think that giving each thread the responsability to 
+release the resource it was attached to is not a good idea.
+</p>
+
+<p>First, it not an easy thing to do. Don't forget we want to use logging in 
+a robust software developing context. A thread can easily "forget" to do this, 
+because it was exited at some point (by a call to pthread_exit or ExitThread
+for example), or because it did something wrong (like dereferencing a NULL pointer)
+and was killed by the system, or simply because it was killed by anothed thread
+(TerminateThread) which is known as being a bad practice, but not by everyone
+and so it exists and a good logging library should consider that.
+(see the rule "safely usable by a complete C++ beginner").
+</p>
+
+<p>An other problem with this approach is: what about accessing the thread logging
+contents after the thread ended? If each thread manage its own resource, how can
+we know at the process level where the logged message went? If the messages where
+stored in an internal buffer for possible later dumping, what about accessing
+the contents of this buffer after the thread exited?  
+</p>
+
+<p>An alternative way to "solve" this is to change "the one who allocated it".
+This could be the creator of the thread, i.e the main() function.
+</p>
+
+<pre>
+void thread_proc1(void *Ptr)
+{
+    logger_output *output = (logger*)logger_output;    
+    logger *log = init_logger( output );
+    log->append( "Message from thread1" );
+}
+
+void thread_proc2(void *Ptr)
+{
+    logger_output *output = (logger*)logger_output;    
+    logger *log = init_logger( output );
+    log->append( "Message from thread2" );
+}
+</pre>
+
+<p>The main() function would allocate and initialize one logger_output
+for each thread, and decide when to release them. But, that's the
+question: when to release them?
+</p>
+
+<p>
+Depending of the context, it can be difficult for the main() function
+to detect a thread ended. It mostly depends of the used thread library,
+and the architecture of the application. In an  event driven application
+such as a GUI program developped with Qt, it is quite easy to be informed
+that a thread ended (by connecting a slot to the correct signal from QThread).
+</p>
+
+<p>However, in many other circumstances, the only way to know a thread ended
+is by polling, i.e frequently testing if each started thread is still alive
+or not. By doind so, the function main() can detect the end of each thread,
+append a message of the type "Thread1 ended normally" or
+"Thread2 was killed by the system (ACCESS_VIOLATION)". But polling is bad,
+and it is an unacceptable solution in the contect of a logging library.
+Because I think such a task of allocating and closing the per-thread ressource
++ informing a thread exited should be done transparently by the logging library.
+And with the polling approach, that would mean doing polling each time the user
+call the library, i.e each time he logs a message.. 
+</p>
+
+<p>Yet another option is to use another thread dedicated to thread ending
+detection, in a correct passive way. This is how Qt safely detects the ending of
+a thread (inclusing abnormal terminaison), by starting a "watcher thread"
+which is responsible of tracking the launched threads.  
+</p>
+
+<p>This way, a logging library could automatically handle resource allocation on
+a per thread basis, safely handle the deallocation and safely detect almost in
+real-time the endind of a thread (quickly outputing a log message about the ending)
+of a thread can be an interesting feature).
+</p>
+
+
+<p>This way, each thread can safely use its own private resource, whithout being
+slowed down nor interupted by global synchronisation mechanism.
+</p>
+
+<p>But is it as good as it seems to be?
+</p>
+
+<p>First, it is no so easy to implement, because you need to be informed
+of each thread creation. This can be automatically detected by testing if
+the current thread id is a known one, but such a test can be difficult to
+implement in an efficient way. A better solution would rely on TLS.
+So, you have to implement an automatic initialisation technique based on
+the use of TLS, then to implement a watcher thread, i.e use particular system
+calls and dealing with the complexity and the limitation of TLS.  
+</p>
+
+<p>Then you have to take care of many multi-threading issues. For example,
+some implementation of memory management in C++ (new/delete of your compiler)
+can automatically release the undeleted memory of a thread when the later ends.
+So if you use some memory allocated via new in your library (which can be
+easily done if you use std::string for example), you may run
+into troubles if you try to access it after the thread ended. 
+The watcher thread could also die or be killed.
+</p>
+
+<p>This is in fact very simple: the one who free a particular resource should
+be the one who allocated it. So, if your library does automatic initialisation
+from a thread, the unitilisation has to be done from that thread, and we saw
+it is not possible to implement that in a robust way.
+</p>
+
+<p>That's why I think the logging library should not need any per-thread
+initialiation. Said in other words, I don't think the per-thread resource
+approach is the best one. 
+</p>
+
+<p>Having a global resource shared by all the thread is a much simpler approach,
+and it does not have so much drawbacks compared to the per-thread approach. 
+</p>
+
+<p>First, it also has its own strong points the per-thread approach does't have.
+Because all the lg messages are centralized in the same place, in the order they
+where asked to do (multiplexage/ordering?), it is possible to follow and compare the
+execution flow of the different threads, while still being possible to easily
+separate each thread output with the proper tool.
+</p>
+
+<p>In some case, it can be usefull to know if a particular log message from
+a thread was or no outputed before or after another message from another thread.
+The global resource way makes this possible, not the per-thread (I mean, in
+a very accurate way). 
+</p>
+
+<p>Then, one of the bigger advantage of the per-thread approach is the lower
+impact regarding the scheduling of the threads. At first sight, it seems that
+outputing a log message will not generate a context switch for the calling
+thread, nor slow down its execution because of the use of an heavy
+synchronisation mecanism (like a semaphore). 
+</p>
+
+<p>The fact is, first, outputing a log message can still trigger a context
+switch. A poorly written logging library may even do this almost each time.
+Logging a message may induce some system (calls for allocating memory,
+writing data to a file, etc...) wich will interupt the thread.
+Any use of the standard library of your compiler may also do the same,
+because the thread-safe library given with your compiler may do some
+internal use of synchronisation mechanism.  
+</p>
+
+<p>Then, there are several way to implement synchronisation betweend threads,
+and some of them are very efficient (critical sections) because they do
+not use kernel object (like a semaphore), and because it is possible to
+safely access shared memory with the use of some dedicated processor
+instructions. So, a well designed library might be able to implement
+a thread-safe logging architecture that does not necesseraly indue a context
+switch from the caller thread, and which is able to handle message creation
+in a centralized way almost as fast than a per-thread way (see below,
+"special considerations").
+</p>
+
+<p>Finally, most of the time, people want to be able to read all the log
+messages in real time in the same output, like a console. So, you will need
+to implement <i>message atomicity</i> and even more <i>message ordering</i>
+even if your achitecture is designed not to need this.
+</p>
+
+<h4>Special consideration regarding message ordering</h4>
+<p>
+In order to implement correct <i>message ordering</i> in a centralized approach,
+you must separate 2 concepts:
+</p>
+
+<ul>
+<li>allocation of the message number</li>
+<li>creation of the message itself</li>
+</ul>
+
+<p>The allocation of the message number should be done as early as possible.
+For example, in the following example:
+</p>
+
+<pre>
+std::string get_hello_world()
+{
+    return "Hello World!";
+}
+
+log( "New message: ", get_hello_world() );
+</pre>
+
+<p>The creation of the message will begin before the message number is
+generated, because we call a function, which construct a std:string object, etc.
+</p>
+
+<p>The consequence is: if an other thread executes an other log operation when
+your first thread is still inside <tt>get_hello_world()</tt>, it may output
+its message before the first thread, which began the log operation first.
+So, the message from the second thread will be wrongly reported as generated
+before the one of the first thread.
+</p>
+
+<p>That's another reason why I prefer the C++ stream syntax. In the folowing
+example:
+</p>
+
+<pre>
+std::string get_hello_world()
+{
+    return "Hello World!";
+}
+
+log() &lt;&lt; "New message: " &lt;&lt; get_hello_world();
+</pre>
+
+<p>With this syntax, the first fucntion which is called is not
+<tt>get_hello_world()</tt> but <tt>log()</tt>, making it possible to allocate
+the message number before cosntructing the message itself. The end of the
+construction of the message can be done by the destructor of the stream
+returned by <tt>log()</tt>.
+</p>
+
+<p>This way, <i>message ordering</i> can be done in a much more accurate way.
+It is still possible to another thread to log a message if the above thread
+was interupted just in the moment  <tt>log()</tt> began to execute, but this is
+a really particular case that most people don't care about. 
+</p>
+
+<p>The C++ stream syntax also give the assurance that a loging operation
+will not be missed because an exception occured during the creation of the
+message, if <tt>get_hello_world()</tt> triggers an exception for example.
+If such a thing happens, the second library would still log the
+"New message: " message, while the first one will completely be uninformed
+of the failed log request. For more information, see "Which syntax to use?".
+</p>
+
+</body>
+</html>

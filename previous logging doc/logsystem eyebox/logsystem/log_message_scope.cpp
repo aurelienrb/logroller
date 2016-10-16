@@ -1,0 +1,1 @@
+#include "log_message_scope.h"

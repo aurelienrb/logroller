@@ -1,0 +1,37 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>The cost of logging</h3> 
+
+<p>Often, logging is used for a debugging purpose.
+</p>
+
+<ul>
+<li>impact on execution time. This is the more obvious consequence.</li>
+<li>impact on executable size</li>
+
+<li>impact on thread ordonancement: can easily generate a switching context
+and alter the classical execution flow. A multithreaded library can slow
+down all the threads due to logging synchronisation, and augment the time
+spent in a critical section if information are logged there, thus slowing
+down the whole application.
+Can participate in the apparition of <a href="http://en.wikipedia.org/wiki/Heisenbug#Heisenbugs">heisenbugs</a>.
+</li>
+<li>impact on memory usage. Can interfer with memory leak detection libraries and
+participate in the apparition of <a href="http://en.wikipedia.org/wiki/Heisenbug#Heisenbugs">heisenbugs</a>.
+</li>
+<li>impact on source code confidenciality: can give losts of information (that's the goal!),
+like source file tree, function names, ... Adds a lot of literal strings</li>
+<li>impact on stability: if throws exceptions, contains bugs, ...</li>
+<li>impact on safety: if use unsafe functions, does improper input validation, contains bugs
+like buffer overrun, ...</li>
+<li>impact on portability: if use copiler/OS specific code</li>
+<li>impact on maintenability: if adds dependencies</li>
+</ul>
+
+
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Logroller • Accueil</title> 
+  <link rel="stylesheet" href="./style.css" type="text/css" media="screen">
+</head>
+
+<body>
+<div id="wrapper">
+
+<div id="content"> 
+
+<h1>Logroller</h1>
+
+<h2>Présentation</h2>
+
+<p>Logroller est une bibliothèque de génération de logs conçue et pleinement optimisée pour le langage C++.
+Loin de l'approche «&nbsp;usine à gaz&nbsp;», elle se veut d'une utilisation simple et flexible tout en étant techniquement très pointue
+(ses performances sont incomparables avec la plupart des alternatives).</p>
+
+<h2>Utilisation</h2>
+<p>Les logs générés par logroller ne sont pas destinés à être consultés par les utilisateurs finaux d'une application, mais
+par ses développeurs. Typiquement, il s'agit d'enquêter sur un problème rencontré lors d'une exécution chez un utilisateur.
+Mais il peut aussi s'agir de constituer des statistiques.</p>
+<p>Logroller n'impose pas de cadre d'utilisation rigide et se veut extensible. L'idée est de s'adapter aux contraintes des
+programmeurs plutôt que l'inverse. En particulier, une certaine syntaxe d'utilisation est proposée sans être imposée.
+Des éléments sont fournis pour être créatif à ce niveau afin que chacun puisse définir une syntaxe qui lui plait
+et qui l'encourage à placer de nombreux messages de log dans son code.</p>
+<p>Logroller aspire à devenir un véritable compagnon de qualité logiciel pour tout programmeur C++.
+En plus de l'enregistrement de messages de logs, elle permet de collecter des informations utiles au
+débogage et à l'optimisation, à la mesure de performance, à la recherche de fuites mémoires,
+à l'établissement de statistiques (couverture du code, zones chaudes, ...), à la vérification des invariants, ...
+Il ne tient qu'à vous d'allonger cette liste !</p>
+
+<h2>Exemple</h2>
+
+<p class="pretitle">test.cpp</p>
+<pre>
+<span class="keyw">#define</span> <span class="string">LOGROLLER_ALLOW_LITERAL_STRING_AS_ARG</span>
+<span class="keyw">#include</span> <span class="string">"logroller.h"</span>
+
+<span class="type">int</span> main(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+    if (!<span class="log">log_init</span>(argc, argv, inprocess_reader( text_printer(
+            console_writer() + file_writer(<span class="string">"%appname%.log"</span>) ) )
+        return 0;
+
+    if (!<span class="log">log_init</span>(argc, argv, to_textfile(<span class="string">"%appname%.log"</span>))
+        <span class="keyw">return</span> 0;
+
+    <span class="log">log_info</span>(<span class="string">"Hello World!"</span>);
+       
+    <span class="log">log_info</span>(<span class="string">"Syntaxe"</span>) &lt;&lt; <span class="string">"à"</span> &lt;&lt; <span class="string">"la"</span> &lt;&lt; <span class="string">"istream"</span>;
+    <span class="log">log_info</span>(<span class="string">"Syntaxe à la %1 (%2)"</span>).arg(<span class="string">"Qt"</span>).arg(<span class="string">"QString::arg"</span>);      
+    <span class="log">log_info</span>(<span class="string">"Syntaxe"</span>) % <span class="string">"à"</span> % <span class="string">"la"</span> % <span class="string">"Qt (operateur %)"</span>;
+    <span class="log">log_info</span>(<span class="string">"Syntaxe mixte %1 %2/%1 %3/%4"</span>).arg(<span class="string">"Qt"</span>) % <span class="string">"arg"</span> &lt;&lt; <span class="string">"%"</span> &lt;&lt; <span class="string">"istream"</span>;
+}
+</pre>
+
+<p class="pretitle">test.log</p>
+<pre>
+* --- Program general info ---
+* Date:                 15/sept/2012 15:54:41
+* Program:              D:\logroller\test\Debug\test.exe
+* Command line:         ""
+* Run as administrator: No
+* From a network drive: No
+* Abnormal terminaison: No 
+* 
+* --- System info ---
+* OS:                   Windows XP SP3 32 bits
+* CPU:                  Intel(R) Celeron(R) CPU 530 @ 1.73GHz
+* MHz:                  1733 
+* Physical RAM:         768 Mo
+* 
+* --- Global CPU stats ---
+* Total execution time: 200 ms
+* Kernel time:           10 ms
+* User time:            190 ms
+* Logging time overhead: 10 ms
+* 
+* --- Global memory stats ---
+* Heap size on exit:     454 Ko
+* Max working set size:  600 Ko
+* Available RAM on exit: 385 Mo
+* 
+* --- Global logs stats ---
+* Logged messages:       4
+* Size of message data:  52
+* Nb threads logged:     1
+* Nb source files:       1
+* Nb functions:          1
+* 
+* --- Begining of logs ---
+15:54:41:100  #1  [test.cpp:8]   main()  {info}   Hello World!
+              #1  [test.cpp:10]  main()  {info}   Syntaxe à la istream
+--:--:--:110  #1  [test.cpp:11]  main()  {info}   Syntaxe à la Qt (QString::arg)
+              #1  [test.cpp:12]  main()  {info}   Syntaxe à la Qt (operateur %)
+--:--:--:120  #1  [test.cpp:13]  main()  {info}   Syntaxe mixte Qt arg/Qt %/istream
+              #1  [test.cpp:15]  main()  {trace}  return 0
+* --- End of logs ---
+* 
+* --- Detailed logs stats ---
+* &lt;function name&gt;              &lt;nb called&gt;   &lt;duration&gt;                 &lt;log overhead&gt; &lt;mem allocs&gt;        
+* test.cpp:main                    1          200 ms (real: &lt;200 ms)          0
+</pre>
+
+<pre>
+main() [D:\logroller\test\main.cpp]
+| 5: Hello World!
+| 8: Program name: test.exe
+|12: Parameter 1 = 'param1'
++12: Parameter 2 = 'param2'
+
+D:\logroller\test\main.cpp
+  [main]  5: Hello World!
+          8: Program name: test.exe
+         12: Parameter 1 = 'param1'
+             Parameter 2 = 'param2'
+             Parameter 3 = 'param3'
+  [f]    24: Hello!
+
+
+
+main.cpp [main]   Hello World!
+         [main]   Program name: test.exe
+         [main]   Parameter 1 = 'param1'
+         [main]   Parameter 2 = 'param2'
+         [main]   Parameter 3 = 'param3'
+         [f]      Ok!
+f.cpp    [f]      Hello!
+         [main]   Terminé!
+
+
+main.cpp     main()      5:    Hello World!
+-            -           8:    Program name: test.exe
+-            -          12:    Parameter 1 = 'param1'
+-            -           -     Parameter 2 = 'param2'
+-            -           -     Parameter 3 = 'param3'
+-            f()        24:    Ok!
+f.cpp        f()        11:    Hello!
+main.cpp     main()     18:    Terminé!
+
+
+main.cpp [main|   Hello World!
+         |main|   Program name: test.exe
+         |main|   Parameter 1 = 'param1'
+         |main|   Parameter 2 = 'param2'
+         |main|   Parameter 3 = 'param3'
+         [f]      Ok!
+f.cpp    [f|      Hello!
+         [f]      Ok!
+         |f]      Ok!
+main.cpp |main]   Terminé!
+</pre>
+
+<h3>reader, printer et writer</h3>
+<p>Comme évoqué en introduction, logroller se limite à enregistrer des messages dans un buffer
+circulaire qui tourne («&nbsp;roll&nbsp;») constament. Et elle ne fait vraiment rien de plus.</p>
+
+<p>La récupération, la mise en forme et l'affichage de ces messages sont effectués par d'autres composants
+logiciels. Comme il s'agit de 3 opérations différentes, ces composants sont naturellement scindés en 3 groupes :</p>
+<ul>
+<li>Les readers : s'occupent de récupérer les messages enregistrés par logroller pour les transmettre aux printers.</li>
+<li>Les printers : s'occupent de la mise en forme des messages récupérés (au format texte ou html par exemple).</li>
+<li>Les writers : s'occupent d'écrire le résultat quelque part (typiquement dans un fichier ou une console).</li>
+</ul>
+<p>Ces 3 composants se combinent les uns aux autres pour constituer un pipeline de traitement des messages de logs,
+suivant l'ordre reader -> printer -> writer. L'exemple des fonctions utilitaires <tt>to_console()</tt>,
+<tt>to_textfile()</tt> et <tt>to_htmlfile()</tt> illustrent leur principe d'utilisation :</p>
+
+<pre>
+log_reader_ptr to_console()
+{
+    return inprocess_reader(
+               text_printer(
+                   console_writer() ) );
+}
+
+log_reader_ptr to_textfile(const char * filename_format = "%appname%.log")
+{
+    return inprocess_reader(
+               text_printer(
+                   file_writer(filename_format) ) );
+}
+
+log_reader_ptr to_htmlfile(const char * filename_format = "%appname%.html")
+{
+    return inprocess_reader(
+               html_printer(
+                   file_writer(filename_format) ) );
+}
+</pre>
+<p>Les éléments mis en jeux sont les suivants :</p>
+<ul>
+<li>inprocess_reader : s'occupe de récupérer les messages de logs depuis un thread spécifique au sein même
+de l'application. Ce thread s'occupe aussi d'héberger l'exécution du/des printer(s) ainsi que de leur(s) writer(s)
+respectif(s).</li>
+<li>text_printer : met en forme les messages de logs sous forme texte.</li>
+<li>html_printer : met en forme les messages de logs au format html.</li>
+<li>console_writer : affiche les messages formatés dans la console du programme hôte (ou en crée une à défaut).</li>
+<li>file_writer : sauvegarde les messages formatés dans un fichier local.</li>
+</ul>
+<p>Ces éléments ne font pas partie du coeur de logroller, mais de sa périphérie. De cette manière,
+chacun est libre de choisir ou de créer la combinaison qui lui plaît sans avoir à incorporer le code
+d'élements qui ne l'intéressent pas. En effet, l'utilisation de chaque élément implique de lier le
+programme final à la bibliothèque dans laquelle il est défini.</p>
+<h3>Fonctions d'initialisation</h3>
+<p>Il existe une quatrième catégorie de fonctions : les fonctions d'initialisation.
+Ces fonctions sont déclinées en autant de types d'applications à supporter :</p>
+<ul>
+<li><tt>log_init()</tt> : à appeler depuis le programme principal, aussi bien depuis la fonction <tt>main()</tt>
+standard que depuis le <tt>WinMain()</tt> des applications Windows. En fonction du contexte d'utilisation,
+<tt>log_init()</tt> peut renvoyer <tt class="keyw">false</tt>. Dans ce cas l'application doit immédiatement
+se terminer sans erreur particulière car il s'agit d'un comportement normal destiné à étendre l'utilisation
+du programme hôte : exécution en tant qu'enfant de lui-même (génération «&nbsp;outofprocess&nbsp;» des logs),
+mise en forme de logs binaires reçus en lige de commande, etc.</li>
+<li><tt>log_init_dll()</tt> : à appeler depuis le point d'entrée d'une bibliothèque dynamique.
+De cette manière, une dll est capable de logger ses messages dans le même buffer que son application
+hôte si celle-ci utilise aussi logroller (idéal pour une sortie console ou fichier commune).
+Mais elle peut aussi bien sûr utiliser son propre canal dédié (fichier séparé).</li>
+</ul>
+
+<h2>Apperçu des spécificités</h2>
+
+<p>Logroller se distingue de la plupart des bibliothèques existantes en de nombreux points.
+Aussi il est recommandé de d'abord lire ce qui suit avant de commencer à l'utiliser.</p>
+
+<p>Au niveau technique :</p>
+<ul>
+  <li>logroller ne recopie pas les messages textes mais enregistre seulement leur emplacement mémoire.
+  <p>L'absence de recopie du contenu des messages permet de réduire considérablement leur coût d'enregistrement
+  (tant en espace qu'en temps). Pour plus de détails, voir <a href="#pasderecopie">Pas de recopie du message texte principal</a>.</li>
+  <li>Les logs générés sont dans un format binaire extrêmement compact, ce qui limite l'impact de leur génération
+  sur le logiciel hôte et diminue considérablement l'espace mémoire nécessaire à leur stockage. Cela permet aussi
+  de restreindre - si nécessaire - leur consultation aux seuls développeurs de l'application (afin par exemple de ne pas exposer
+  publiquement son fonctionnement interne).</li>
+  <li>En conséquences, une étape supplémentaire est requise pour pouvoir consulter les logs générés.
+  C'est lors de cette étape que sont effectuées les opérations de mise en forme et de filtrage du
+  contenu. En se déchargeant de ces étapes au moment de l'enregistrement,
+  la complexité globale est réduite. L'empreinte mémoire et CPU aussi.</li>
+</ul>
+
+<p>Le coeur de la bibliothèque ne s'occupe donc finalement que d'une seule chose : la collecte et l'enregistrement de messages.
+</p>
+
+<p>Il en résulte la philosophie d'utilisation suivante :</p>
+<ul>
+  <li>Tous les messages disponibles sont systématiquement enregistrés.
+  <p>Logroller considère que leur filtrage n'est pas de sa responsabilité mais est celle du logiciel de
+  visualisation des logs. Typiquement, un développeur souhaite obtenir le plus d'information
+  possible sur certaines parties précises du code, et ignorer tout le reste.
+  Ceci peut se faire facilement au moment de la visualisation, alors qu'il est très difficile d'anticiper
+  les lignes de logs qui seront véritablement utiles utérieurement.</p></li>
+ 
+  <li>Il n'y a donc pas d'intérêt à classer les messages en niveaux hiérarchiques du type
+  TRACE &lt DEBUG &lt INFO &lt WARNING &lt ERROR &lt FATAL. D'autant plus que l'usage montre qu'une telle classification
+  n'est pas évidente à déterminer pour chaque message : c'est souvent le contexte de sa consultation qui définit son
+  intérêt, plus que son importance supposée au moment de l'écriture du code.
+  Logroller permet toutefois d'associer librement des catégories aux messages, mais ces catégories
+  n'ont pas de relation hiérarchique entre elles : il s'agit plutôt de tags.</li>
+  
+  <li>Logroller structure et hiérarchise les messages suivant le fil d'exécution du programme.
+  Parce qu'elle est capable d'enregistrer la durée de vie du bloc dans lequel se trouve chaque message,
+  elle permet de reconstituer leur imbrication respective, et donc de distinguer les messages
+  émis par une fonction donnée de ceux issus des sous-fonctions appellées.
+  Les messages sont alors organisables sous une forme arborescente qui reproduit
+  fidèlement la pile d'appels du programme.    
+  </li>   
+  <li>Le formattage, l'organisation et le filtrage des messages sont effectués à la lecture du fichier de logs.
+  C'est à ce moment que le développeur décide ce qu'il souhaite voir ou au contraire ignorer, grâce tout d'abord
+  à la hiérarchie des appels de fonctions, mais aussi à d'autres critères tels que
+  l'emplacement du message dans le code source (nom du fichier, nom de la classe,
+  nom de la fonction, numéro de ligne), au tag associé, au thread émetteur, etc.</li>
+</ul>
+
+<h3>LOGROLLER_ALLOW_LITERAL_STRING_AS_ARG</h3>
+<p>Par défaut, logroller ne permet pas de passer des chaînes litérales en arguments comme dans
+l'exemple suivant: 
+<pre>
+<span class="keyw">void</span> f(<span class="keyw">int</span> a, <span class="keyw">int</span> b)
+{
+    log_info(<span class="string">"Paramètres: a="</span>) &lt;&lt; a &lt;&lt; <span class="string">" b="</span> &lt;&lt; b;
+}
+</pre>
+<p>Si la constante <tt>LOGROLLER_ALLOW_LITERAL_STRING_AS_ARG</tt> n'est pas explicitement définie,
+le code ci-dessus ne compilera pas à cause de la chaîne <tt class="string">" b="</tt> qui se trouve dans la liste
+des arguments.</p>
+<p>Logroller incite en effet à réécrire un tel code de cette façon :</p>
+<pre>
+<span class="keyw">void</span> f(<span class="keyw">int</span> a, <span class="keyw">int</span> b)
+{
+    log_info(<span class="string">"Paramètres: a=%1 b=%2"</span>) &lt;&lt; a &lt;&lt; b;
+}
+</pre>
+<p>Comme on peut le voir, le même résultat est obtenu avec moins d'instructions ce qui rend l'opération
+moins coûteuse mais aussi plus lisible.</p>
+<p>Ce comportement par défaut (modifiable en définissant la constante
+<tt>LOGROLLER_ALLOW_LITERAL_STRING_AS_ARG</tt>) s'inscrit dans la continuité de la non recopie
+du message texte principal.</p>
+ 
+
+</div>
+</div>
+
+<div id="footer"><p>© 2012 LogRoller</p></div>
+
+
+</body>
+</html>

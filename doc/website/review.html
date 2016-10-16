@@ -1,0 +1,1266 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Quick review of exisiting libraries</h3>
+
+<img src="images/858516_old_blue_books_4.jpg" width="150" heigh="113" />
+
+<h4>Log for C++ (Log4cpp)<h4>
+<p>
+<a href="http://log4cpp.sourceforge.net/">web site</a>
+<a href="">Web site</a>
+<blockquote>
+A library of C++ classes for flexible logging to files, syslog,
+IDSA and other destinations. It is modeled after the Log for Java library
+(http://www.log4j.org), staying as close to their API as is reasonable.
+</blockquote>
+</p>
+
+<h4>Logging Framework for C++ (log4cplus)<h4>
+<p>
+<a href="http://sourceforge.net/projects/log4cplus">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+log4cplus is a simple to use C++ logging API providing thread-safe,
+flexible, and arbitrarily granular control over log management and configuration.
+It is modeled after the Java log4j API.
+</blockquote>
+</p>
+
+<h4>dclog<h4>
+<p>
+<a href="http://sourceforge.net/projects/dclog">Sourceforge</a><br /><br />
+<b>No web site</b>
+<blockquote>
+dclog is a C logging library. It supports the concept of log levels,
+configurable logfile timestamps, and a configurable prefix to log messages.
+</blockquote>
+</p>
+
+<ul>
+<li>output: FILE*</li>
+<li>dev platform: Linux</li>
+<li>compilation: make (GCC)</li>
+<li>filtering is done via hard coded levels, by the library at run-time</li>
+<li>concept of "header": generate and log extra infos if asked: date and time</li>
+<li>library errors outputed in the log file</li>
+<li>some features seem not to be implemented: sendind an alarm (email), SMTP functions...</li>
+<li>the user must specify the log file name</li>
+<li>one header: dclog.h</li>
+<li>documentation: doxygen, test program</li>
+<li>library source code size: 32Ko</li>
+</ul>
+
+<pre>
+// Log levels
+#define DCLOG_ALARM   0 //!&lt; alarms
+#define DCLOG_ERROR   1 //!&lt; error messages
+#define DCLOG_WARNING 2 //!&lt; warnings
+#define DCLOG_INFO    3 //!&lt; information messages
+#define DCLOG_DEBUG   4 //!&lt; debugging messages
+#define DCLOG_PROFILE 5 //!&lt; profiling messages
+</pre>
+
+<pre>
+  // Simple log
+  // -------------------------------------------------------------------------
+
+
+  fprintf( stderr, "Constructing simple DCLog object... " );
+  if ((dclog = NewDCLog()) == NULL) {
+
+    fprintf( stderr, "failed!\n" );
+    return 1;
+
+  } // if (NewDCLog() failed)
+  fprintf( stderr, "OK\n" );
+
+  fprintf( stderr, "Setting log level to UCHAR_MAX... " );
+  if (!DCLogSetLevel( dclog, UCHAR_MAX )) {
+
+    fprintf( stderr, "failed!\n" );
+    return 1;
+
+  } // if (DCLogSetLevel() failed)
+  fprintf( stderr, "OK\n" );
+
+  fprintf( stderr, "Opening logfile '%s'... ", log_simple );
+  if (!DCLogOpen( dclog, log_simple, "w" )) {
+
+    fprintf( stderr, "failed!\n" );
+    return 1;
+
+  } // if (DCLogOpen() failed)
+  fprintf( stderr, "OK\n" );
+
+  fprintf( stderr, "Logging to file '%s'... ", log_simple );
+  if (!DCLogWrite( dclog, DCLOG_INFO, "Hi, I am logfile '%s'.\nI am a very "
+                   "simple logfile, with no neat features turned on.\n",
+                   log_simple )) {
+
+    fprintf( stderr, "failed!\n" );
+    return 1;
+
+  } // if (DCLogWrite() failed)
+  fprintf( stderr, "OK\n" );
+
+  fprintf( stderr, "Closing logfile '%s'... ", log_simple );
+  if (!DCLogClose( dclog )) {
+
+    fprintf( stderr, "failed!\n" );
+    return 1;
+
+  } // if (DCLogClose() failed)
+  fprintf( stderr, "OK\n" );
+
+  fprintf( stderr, "Destroying simple DCLog object... " );
+  if (!DestroyDCLog( dclog )) {
+
+    fprintf( stderr, "failed\n" );
+    return 1;
+
+  } // if (DestroyDCLog() failed)
+  fprintf( stderr, "OK\n" );
+</pre>
+
+<h4>Just In Cpp (jic)<h4>
+<p>
+<a href="http://sourceforge.net/projects/jic">Sourceforge</a><br />
+<a href="http://jic.sourceforge.net/">Web site</a>
+<blockquote>
+A library of class utilities bases on ACE, that offers you the following:
+<ul>
+<li>Logs: I find the log of this library very helpful.
+The main disadvantage is that this logs are quite costly.</li>
+<li>Sockets wrapper: A very useful wrappers. Based on ACE</li>
+<li>Services</li>
+</ul>
+</blockquote>
+</p>
+<p>
+<b>JIC (Just in CPP)</b> provides you with the following Features:
+
+<ul>
+    <li>Active Objects Framework</li>
+    <li>Logging System</li>
+    <li>Authomatic Exceptions Generation</li>
+    <li>Sockets Wrapper</li>
+    <li>Configuration System</li
+    <li></li>
+</ul>
+
+and some more.
+</p>
+
+<ul>
+<li>output: </li>
+<li>dev platform: Linux</li>
+<li>compilation: </li>
+<li>requisites: have properly ACE installed in you system.
+But not just the library, also its makefiles. JIC uses them</li>
+<li>filtering:</li>
+<li>library errors:</li>
+<li>the user must specify the log file name</li>
+<li>include header: only one: jic/log/trazas.hpp (includes ACE files)</li>
+<li>documentation: doxygen, test file, some papers in spanish</li>
+<li>library source code size:</li>
+</ul>
+
+<p>Why JIC? J, I, and C are the initials of the authors of the code
+that has allowed this library to exist: Javi, Israel and Cesar.</p>
+
+<pre>
+#include "jic/log/trazas.hpp"
+
+int main(int argc, char *argv[])
+{
+  TRAZAS::Contenedor::inicializa("./", argv[0]);
+
+  {
+    FICHERO_TRAZA("valida");
+    DEPURA("prueba");
+    O_TRAZA("Mierda " &lt;&lt; 3 &lt;&lt; " veces");
+    TRAZA("pati esto " &lt;&lt; 5 &lt;&lt; " veces");
+
+    return 0;
+  }
+}</pre>
+
+<h4>Flogger<h4>
+<p>
+<a href="http://sourceforge.net/projects/flogger">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+Flogger - a Free Logger. An easy to use and easy to customize logging
+library that works on a wide range of operating systems. Write your log
+entries effortlessly and efficiently to the console, to a file,
+to a data base or to some other source.
+</blockquote>
+</p>
+
+<h4>liblog<h4>
+<p>
+<a href="http://sourceforge.net/projects/liblog">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+liblog is a free, easy to use and enhancable logging library,
+written in C++. Included are a console log device and a file log device,
+but it is very easy to implement your own devices. There are 4 log channels:
+- LOG_DEBUG
+- LOG_MESSAGE
+- LOG_ERROR
+- LO
+</blockquote>
+</p>
+
+<h4>Log Stream<h4>
+<p>
+<a href="http://sourceforge.net/projects/logstream">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+A C++ Library that provides easy logging to syslog and cerr
+with debug levels throught global std::ostream objects
+</blockquote>
+</p>
+
+<h4>LobTraceStream<h4>
+<p>
+<a href="http://sourceforge.net/projects/lobtracestream">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+LobTraceStream is an easy C++ trace/log mechanism, that allows to specify
+at runtime different trace levels for each of the modules of your application.
+</blockquote>
+</p>
+
+<h4>Log Plus Plus (lpp)<h4>
+<p>
+<a href="http://sourceforge.net/projects/logplusplus">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+LogPlusPlus (lpp) is a lightweight but powerful and efficient
+logging system for c++ programs.
+</blockquote>
+</p>
+
+<h4>C++ Development Kit (gcdk)<h4>
+<p>
+<a href="http://sourceforge.net/projects/gcdk">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+C++ Development Kit. A library to help programmers develop C++ programs.
+The library include XML DOM parser wrapper, Plug in architecture for
+Data base access and log facilities.
+</blockquote>
+</p>
+
+<h4>Infinitum C++ Library<h4>
+<p>
+<a href="http://sourceforge.net/projects/infinitum8">Sourceforge</a><br />
+<b>No Web site</b>
+<ul>
+<li>Comes with a test suite based on CppUnit</li>
+<li>output: file (std::ofstream)</li>
+<li>compilation: VC++ projects</li>
+<li>dev platform: Windows</li>
+<li>filtering: none</li>
+<li>library errors: can throw std::exception (use of std:: objects).
+This point is not documented, a LoggingException class in mentioned
+in the TODO list.</li>
+<li>documentation: doxygen</li>
+<li>license: LGPL 2.1</li>
+</ul>
+<blockquote>
+The Infinitum C++ Library is intended to be a general purpose library.
+When we write some code that is generally useful, we place it inside this library.
+It contains a set of classes to write log files, some string & file helpers, algorithms and function
+</blockquote>
+</p>
+<p>The library use a IL::String type, which is just an alias to std::string:
+</p>
+
+<pre>
+BEGIN_NAMESPACE_INFINITUM 
+
+//fundamental types
+typedef int             Int;
+typedef unsigned int    UnsInt;
+typedef bool            Bool;
+typedef char            Char;
+typedef unsigned char   Byte;
+typedef long            Long;
+
+// STL
+typedef std::string  String;
+
+END_NAMESPACE_INFINITUM 
+</pre>
+
+<p>However, it also defined its own IL::Exception class, which does not
+inherit from std::exception.
+</p>
+
+<p>The library is quite big, but the logging facilities is just a part of it.
+There is not so much information about that. Here is what I found in the
+doxygen doc:
+</p>
+<blockquote>
+<p>
+The log component is a set of classes to facilitate the creation of logfiles.
+<p>
+The important things for basic use are:<ul>
+<li><a class="el" href="classLogger.html">Logger</a>: you need to create one object of this class. This class implements the access to the logfiles.<li><a class="el" href="classLogging.html">Logging</a>: derive classes where you want to log from this class to get an interface to the <a class="el" href="classLogger.html">Logger</a>.<li><a class="el" href="classLog.html">Log</a>: implements the interface to the <a class="el" href="classLogger.html">Logger</a> (log is a protected member of <a class="el" href="classLogging.html">Logging</a>).</ul>
+
+<a name="example"><h2>Example</h2></a>
+
+<pre>
+Logger myLogger("myLogFile.txt");
+
+class C : public Logging&lt;C&gt;
+{
+   C(void) : Logging(myLogger)
+   {
+      log("Hey! I'm a C!")(endl);
+   }
+
+   void do(int i)
+   {
+      IL_LOG( pubFunc("do", i) )
+      log.underline('*');
+      log( "I'm doin it with " )(i)(endl);
+   }
+};
+
+void main(void)
+{
+   C c;
+   c.do(5);
+}
+</pre>
+</blockquote>
+
+<p>The IL_LOG macro is defined like this:
+</p>
+
+<pre>#define IL_LOG( function ) Log::ReturnDetector retDetector(m_log.function);</pre>
+
+<p>ReturnDetector is a nested class from IL::Log
+</p>
+<pre>
+class Logger  
+{
+// [...]
+public:
+    Logger(const String& fileName = String("log.txt"));
+    
+  	virtual
+  	void pubFuncReturning(const LogId& id);
+
+protected:
+	template &lt;class X>
+	void pubFunc(const LogId& id, const String& funcName, const X& x)
+	{
+		setCurrentFile(id);
+
+      write(m_objectList[m_currentFile][id].name() + String(".") + funcName);
+      write("(");
+      write(x);
+      write(")");
+		  write(std::endl);
+
+      m_callStack[m_currentFile].push( m_objectList[m_currentFile][id].name() + "." + funcName );
+	}
+	
+    template&lt;class X> 
+    void write(const X& x) 
+    {
+        write(x.toString());
+    }
+    
+    virtual void write(const int nb);
+    virtual void write(const long nb);
+    virtual void write(const unsigned int nb);
+    virtual void write(const unsigned long nb);
+    // ...
+};
+
+template &lt;class X>
+class Logging  
+{
+// [...]
+protected:
+    mutable Log m_log;
+};
+
+class Log  
+{
+// [...]
+public:
+	// 'function call' logger functions
+   class ReturnDetector
+   {
+   public:
+      ReturnDetector(const Log& log);
+      ReturnDetector(const ReturnDetector& original);
+      ~ReturnDetector(void);
+
+   private:
+      Logger* m_pLogger;
+		  LogId   m_id;
+   };
+
+  	template &lt;class X>
+  	const Log& pubFunc(const String& funcName, const X& x)
+  	{ 
+        if ((m_pLogger != 0) && (m_id != String(""))) 
+           m_pLogger->pubFunc(m_id, funcName, x);
+        return *this;
+     }
+};
+
+Log::ReturnDetector::~ReturnDetector(void)
+{
+   m_pLogger->pubFuncReturning(m_id);
+}
+</pre>
+
+<p>There is also an other example:
+</p>
+<pre>
+#pragma warning(disable:4786)
+#include "IL_defines.h"
+#include "IL_logger.h"
+//#include "IL_Convertor.h"
+#include "DummyA.h"
+#include "DummyB.h"
+#include &lt;vector>
+#include &lt;fstream>
+#include &lt;iostream>
+
+USING_NAMESPACE_INFINITUM
+using namespace DummySpace;
+using namespace std;
+
+void main (void)
+{
+   ofstream file("log.txt");
+   Logger logger;
+
+   // DummyA: simple logging
+   DummyA dummyA0(logger);
+   dummyA0.doSomething("Gerrit", 5);
+   dummyA0.functionName();
+   
+   // DummyB: simple logging with copying and assignement
+   DummyB dummyB0(logger, "supaDummy");
+
+   dummyB0.doSomething("Supafly!", 4);
+
+   DummyB dummyB1(dummyB0);
+
+   dummyB1.doSomething("...about it!", 4);
+
+   DummyB dummyB2(logger);
+
+   vector&lt;DummyB> dummyList(2);
+   dummyList[0] = DummyB(logger, "crashTestDummy");
+   dummyList[1] = dummyB1; 
+   dummyList.push_back(dummyB2);
+
+   dummyList[0].testBuildInTypes(); 
+}
+</pre>
+
+<h4>XLOG<h4>
+<p>
+<a href="http://sourceforge.net/projects/xlog">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+XLOG is a logging framework whose log files are XML documents.
+</blockquote>
+</p>
+
+<h4>ROTFLogger<h4>
+<p>
+<a href="http://sourceforge.net/projects/rotflogger">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+A small win32 tool which listens on a named pipe for "log messages"
+and displays them in a list. Created for debugging an application,
+but also useful for end-user support. Supports simultaneous connections.
+Client libraries are provided as public domain
+</blockquote>
+</p>
+
+<h4>ESLogger<h4>
+<p>
+<a href="http://sourceforge.net/projects/eslogger">Sourceforge</a><br />
+<a href="http://eslogger.sourceforge.net/">Web site</a>
+<ul>
+<li>compilation: VC++ 6 project</li>
+<li>dev platform: Windows</li>
+<li>the user must specify the log file name</li>
+<li>code is heavily tied to Win32 and VC++,
+writen in a C way (char*, malloc/free, ...), and includes
+unknown missing headers (CriticalSection.h)</li>
+</ul>
+<blockquote>
+C++ logging and tracing classes with built in profiling.
+Groups are used to set tracing levels of DEBUG, WARN, ERROR or NONE
+and have a parent-child relationship. A child's log level is obtained
+from the parents level if not otherwise specified.
+</blockquote>
+
+The prefix ES stand for "Erik Scofield", the author of the library. Here is a simple
+example from the website (which won't run because of the wrong use of '\'
+in the strings)
+</p>
+
+<pre>
+#include "ESLogger.h"
+ESLog logger;
+
+logger.setPath("C:\temp\");
+logger.setGroupName("ESLogger.testTool");
+logger.traceIn("testFunction()");
+logger.traceBool(ESLogger::traceLevel::debug,"My Bool Label",myBool);
+logger.traceOut("testFunction()");
+</pre>
+
+<p>The API is based on many "trace" functions which, I don't know why,
+force the user to precise the type of the last parameter (traceBool, traceLong,
+traceString...) instead of using function overloading.
+).
+</p>
+
+<p>According to the doc:
+</p>
+<PRE>
+<FONT COLOR='#008000'>/*****************************************************************************************
+USAGE:
+class ESLogger  
+
+  ESLogger is a singleton, actually ESLog is the functional class and ESLogger is the
+  intended exposed class.  ESLogger is a helper class to keep track of the instances and make life
+  more simple for you. (really me)  If you(me) only use stack instances of the ESLogger class life
+  will be sweet.  You can still create heap instances just do nt forget to delete the instance.  
+  An undeleted instance will become relavent once you profile, but I think that is the worst case 
+  senerio.
+
+ESLogger allows you to specify logging groups in a parent-child relationship 
+with 4 levels: 
+    NONE	- No tracing
+    ERROR	- Only write when an unrecoverable error occurs
+    WARN	- Write when an non-problematic error occurs, ERROR level is also included
+    DEBUG	- This it the debug trace level, WARN and ERROR levels are also included
+
+Group levels are stored in an ini file for easy access. 
+Group layout:  group layout should reflect the namespace or even more granular.
+
+  example:
+    parent group name, "CompanyXYZ"
+    a child = the Product Name, "ziptoe"
+    with children classes, "mainDialog"
+
+  the child class "mainDialog" would be represented as "CampanyXYZ.ziptoe.mainDialog"
+  
+**** Example ini file: ****
+
+; General settings are stored here
+[ESLog]
+; TraceFileName for easy customization, defaults to trace.trc  Must be a relative path
+;  illegal  : traceFile=c:\temp\traceFile
+;  legal    : traceFile=dir1\dir2\trace.trc
+; note there is no leading backslash
+traceFile=trace.trc
+; this will print out all trace groups in the ESLogTrace section
+; a minus sign denotes that the group depends on the parents trace level
+; If changed back to "NO" all the parent dependant groups will be removed.
+; this is a good way to figure out what groups exist without checking code.
+TraceAllLevels=YES
+
+; all group levels are stored here.  If a group is missing
+; it will depend on the parents debug level.  Default trace level is None
+[ESLogTrace]
+CompanyXYZ=Error
+CompanyXYZ.ziptoe=-Error
+CompanyXYZ.ziptoe.mainDialog=-Error
+
+;  NOTE the minus signs signifying dependance on the parent.  It also has the DebugLevel it thinks the
+;	    parent is to the right of minus sign.  This was printed with the TraceAllLevels=YES option.
+;	    You would not put the -{Level} in yourself, just do  not include the group to set the 
+;	    paren-child dependancy
+
+
+**** functions ****/</FONT>
+<FONT COLOR='#0000ff'>class</FONT> ESLOG_API ESLogger  
+{
+    ESLog *	    m_logger;
+    string	    m_groupName;
+    <FONT COLOR='#0000ff'>int</FONT>	        m_groupID;
+
+<FONT COLOR='#0000ff'>public</FONT>:
+
+<FONT COLOR='#008000'>/* Constructors:*/</FONT>
+
+    ESLogger();	                        <FONT COLOR='#008000'>// default:  </FONT>
+    ESLogger(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT>* groupName);  <FONT COLOR='#008000'>// probably no need for this as you will always use a stack instance *wink*</FONT>
+
+
+<FONT COLOR='#008000'>/* Destructors:*/</FONT>
+    <FONT COLOR='#0000ff'>virtual</FONT> ~ESLogger();
+
+
+<FONT COLOR='#008000'>/* The debug levels and there codes */</FONT>
+    <FONT COLOR='#0000ff'>enum</FONT> traceLevel {
+        none	= 0,
+        error	= 1,
+        warn	= 2,
+        debug	= 3,
+    };
+
+<FONT COLOR='#008000'>/* when using the default constructor you must tell the logger
+<FONT COLOR='#008000'>// what the groups name is.  ie "CompanyXYZ.ziptoe.mainDialog" */</FONT></FONT>
+    <FONT COLOR='#0000ff'>void</FONT> setGroupName(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT>* groupName); 
+                                         
+
+<FONT COLOR='#008000'>/* This is required and you must do  it before anything else.
+<FONT COLOR='#008000'>// I originally did not require this to be set */</FONT></FONT>
+    <FONT COLOR='#0000ff'>void</FONT> setPath(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * path);	         
+
+<FONT COLOR='#008000'>/* all (f) functions use the sprinf function example usage:
+<FONT COLOR='#008000'>//    tracef(ESLogger::traceLevel::debug,"%d %s",54,"is my lucky number");</FONT>
+
+<FONT COLOR='#008000'>//	level	: is the level you want this msg to be printed</FONT>
+
+<FONT COLOR='#008000'>//	msg	    : the msg to print</FONT>
+
+<FONT COLOR='#008000'>// Traces without the Carriage Return / LineFeed */</FONT></FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> rawTrace	 (<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * msg ); <FONT COLOR='#008000'>// NO Carriage Return / LineFeed no Time</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> trace	     (<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * msg ); <FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceBool	 (<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label, <FONT COLOR='#0000ff'>bool</FONT> b); <FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceLong	 (<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label, <FONT COLOR='#0000ff'>long</FONT> l);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceDouble(<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label, <FONT COLOR='#0000ff'>double</FONT> d, <FONT COLOR='#0000ff'>short</FONT> numDec);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceHex	 (<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label, <FONT COLOR='#0000ff'>unsigned</FONT> <FONT COLOR='#0000ff'>long</FONT> l);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceString(<FONT COLOR='#0000ff'>short</FONT> level, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT>* s);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>void</FONT> tracef(<FONT COLOR='#0000ff'>short</FONT> level, LPCSTR lpszFormat , ... );	<FONT COLOR='#008000'>// NO Carriage Return / LineFeed : Not Inline cause much code and I think the compiler will not make it inline anyway because of the variable arguments</FONT>
+
+<FONT COLOR='#008000'>/* Traces with the Carriage Return / LineFeed */</FONT>
+
+
+<FONT COLOR='#008000'>// use the traceIn and traceOut functions at the beginning and end of a function</FONT>
+
+<FONT COLOR='#008000'>// It is extremely important to verify every In has its corrisponding Out</FONT>
+<FONT COLOR='#008000'>// trace In and Outs also keep track of profiling, IE time each function takes</FONT>
+<FONT COLOR='#008000'>// To enable this, use the _ES_TO_PROFILE by defining it above */</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceIn	    (<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceInBool	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,bool b);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceInLong	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,long l);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceInDouble	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,double d, <FONT COLOR='#0000ff'>short</FONT> numDec);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceInHex	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,unsigned <FONT COLOR='#0000ff'>long</FONT> l);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceInString	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,const <FONT COLOR='#0000ff'>char</FONT>* s);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>void</FONT> traceInf(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, LPCSTR lpszFormat , ... ); <FONT COLOR='#008000'>// Not Inline cause much code and I think the compiler will not make it inline anyway because of the variable arguments</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceOut	    (<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceOutBool	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,bool b);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceOutLong	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,long l);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceOutDouble(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,double d, <FONT COLOR='#0000ff'>short</FONT> numDec);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceOutHex	(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,unsigned <FONT COLOR='#0000ff'>long</FONT> l);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> traceOutString(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, <FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * label ,const <FONT COLOR='#0000ff'>char</FONT>* s);<FONT COLOR='#008000'>// with the Carriage Return / LineFeed</FONT>
+
+    <FONT COLOR='#0000ff'>void</FONT> traceOutf(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName, LPCSTR lpszFormat , ... ); <FONT COLOR='#008000'>// Not Inline cause much code and I think the compiler will not make it inline anyway because of the variable arguments</FONT>
+
+<FONT COLOR='#008000'>/* In some cases you may want more control over printing to the file
+<FONT COLOR='#008000'>//  you can use it like this:</FONT>
+<FONT COLOR='#008000'>//	if(HANDLE file = logger.openTraceFile(ESLogger::traceLevel::debug)){</FONT>
+
+<FONT COLOR='#008000'>//	    size_t	    stringLngth;</FONT>
+<FONT COLOR='#008000'>//	    DWORD	    wordwritten;</FONT>
+<FONT COLOR='#008000'>//</FONT>
+<FONT COLOR='#008000'>//	    stringLngth = strlen(msg);  </FONT>
+<FONT COLOR='#008000'>//	    writeFile(file, "I write funny messages", stringLngth, &amp;wordwritten, 0);</FONT>
+<FONT COLOR='#008000'>//	    logger.closeTraceFile();</FONT>
+<FONT COLOR='#008000'>//	}*/</FONT></FONT>
+    
+    <FONT COLOR='#0000ff'>__inline</FONT> HANDLE openTraceFile( <FONT COLOR='#0000ff'>short</FONT> level );
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> closeTraceFile();
+
+
+<FONT COLOR='#008000'>/* Some functions are called way to much but you may want to profile them
+<FONT COLOR='#008000'>// so use these functions instead of the traceIn/Out functions*/</FONT></FONT>
+
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> profileIn(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName);
+    <FONT COLOR='#0000ff'>__inline</FONT> <FONT COLOR='#0000ff'>void</FONT> profileOut(<FONT COLOR='#0000ff'>const</FONT> <FONT COLOR='#0000ff'>char</FONT> * functionName);
+
+
+
+<FONT COLOR='#008000'>/*****************************************************************************************/</FONT>
+
+};
+
+<FONT COLOR='#0000ff'>#endif</FONT>         </PRE>
+
+<p>This library seems to use a mecanism of log hierarchy close to log4j.
+</p>
+
+<h4>Pantheios - The C++ Logging Sweetspot<h4>
+<p>
+<a href="http://pantheios.sourceforge.net/">web site</a>
+<a href="">Web site</a>
+<blockquote>
+A C++ logging API that is simple to use, 100% type-safe generic,
+extensible, atomic, platform-independent, and highly efficient.
+And, best of all, it upholds the spirit of C: you only pay for what you use.
+</blockquote>
+</p>
+
+<h4>Gwenhywfar<h4>
+<p>
+<a href="http://sourceforge.net/projects/gwenhywfar">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+Gwenhywfar allows porting of your software to different operating systems
+like Linux, *BSD, Windows etc. It also provides you with some often
+needed modules such as configuration file handling, simple XML file parsing, IPC etc.
+</blockquote>
+</p>
+
+<h4>Austria<h4>
+<p>
+<a href="http://sourceforge.net/projects/austria">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+The Austria C++ library provides a host of essential C++ tools including
+but generic factories, smart pointers, logging, unit testing framework
+and parameters/configuration system.
+The library will work with both Linux/GCC and win32/MVC++.
+</blockquote>
+</p>
+
+<h4>liblogger<h4>
+<p>
+<a href="http://sourceforge.net/projects/liblogger">Sourceforge</a><br />
+<a href="">Web site</a>
+http://freshmeat.net/projects/liblogger/
+<blockquote>
+liblogger is logging framework for C/C++. It supports logging to
+a file/network/console transparently. It provides several logging
+levels and is highly customizable. Visit http://liblogger.sourceforge.net for more details.
+</blockquote>
+</p>
+
+<h4>Logging Framework for C (log4c)<h4>
+<p>
+<a href="http://sourceforge.net/projects/log4c">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+ANSI C functions and macros for flexible logging to files
+and other destinations. It is modeled after the Log for Java library
+(http://www.log4j.org), staying as close to their API as is reasonable.
+Intended for use in time-space critical environments.
+</blockquote>
+</p>
+
+<h4>cx_Logging<h4>
+<p>
+<a href="http://sourceforge.net/projects/cx-logging">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+cross platform logging module for Python with a C interface.
+</blockquote>
+</p>
+
+<h4>DGD (C++ Streams for Tracing Logs and More...)<h4>
+<p>
+<a href="http://sourceforge.net/projects/dgd">Sourceforge</a><br />
+<a href="http://dgd.sourceforge.net/">Web site</a>
+<blockquote>
+DGD is a simple, easy to use C++ ostream extension for producing nice,
+readable and easy to understand trace logs.
+</blockquote>
+proposed to Boost:
+http://lists.boost.org/Archives/boost/2004/01/58324.php
+</p>
+
+<h4>MemDebug<h4>
+<p>
+<a href="http://sourceforge.net/projects/memdebug">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+A easy to use memory debugger lib for C++ projects.
+Tracks and logs (if desired) memory allocations, deallocations, memory leaks.
+A support template class is also provided to check for memory invasions
+in dynamically allocated memory using operator [].
+</blockquote>
+</p>
+
+<h4>yf cpp libraries<h4>
+<p>
+<a href="http://sourceforge.net/projects/yf-library">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+OpenSource C++ libraries. Full list of classes and functions
+listed at yf-library.sourceforge.net
+</blockquote>
+</p>
+
+<h4>C++ Log Engine Library<h4>
+<p>
+<a href="http://sourceforge.net/projects/logengine">Sourceforge</a><br />
+http://freshmeat.net/projects/logengine/
+<a href="">Web site</a>
+<blockquote>
+LogEngine is a C++ library for easy and flexible logging to files.
+Multithreaded, easy to use and fast. Automatic logfile backup (several modes).
+A small amount of code. Platform Independent.
+</blockquote>
+</p>
+
+<h4>YLLogger<h4>
+<p>
+<a href="http://sourceforge.net/projects/yllogger">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+Powerful,yet easy to use logger, built as a static C++ library,
+featuring sync/async modes,message filters,verbosing.
+Logger classes are easy extendable via inheritance and provide
+solid base for log customizations. BEST,FASTEST C++ LOGGING FACILITY EVER.
+</blockquote>
+</p>
+
+<h4>Generic Buffer<h4>
+<p>
+<a href="http://sourceforge.net/projects/genbuf">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+General line based buffer with backlog written in "C".
+It supports multiple input and a single output.
+I/O modules: TCP/IP, UDP/IP, Unix sockets, File/Pipe.
+It supports backlog writing (and resume) so a failsafe transport-buffer can be build.
+</blockquote>
+</p>
+
+<h4>Qmmslog<h4>
+<p>
+<a href="http://sourceforge.net/projects/qmmslog">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+This is a port to Qt/C++ of the Jakarta project's excellent
+log4j package. Qt users can now benefit from a logging package
+that can be configured at run-time, thus minimizing (and ideally, eliminating) recompilation.
+</blockquote>
+</p>
+
+<h4>FEDLibrary<h4>
+<p>
+<a href="http://sourceforge.net/projects/fedlibrary">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+FEDLibrary a portable c++ library for common use
+</blockquote>
+</p>
+
+<h4>CTrace<h4>
+<p>
+<a href="http://sourceforge.net/projects/ctrace">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+CTrace is a multi-threaded trace debug library written in C.
+It provides a simple, fast, well documented trace utility for applications
+and as such is especially suitable for use in real-time embedded applications.
+</blockquote>
+</p>
+
+<h4>VILE<h4>
+<p>
+<a href="http://sourceforge.net/projects/vile">Sourceforge</a><br />
+<a href="http://vile.sourceforge.net/">Web site</a>
+<blockquote>
+VILE is a high performance logging tool for C and C++ programs.
+VILE can be used for debugging or performance analysis.
+</blockquote>
+</p>
+
+<blockquote>
+<P>
+VILE (or more properly V.I.L.E.) stands for Vitaly's Interval Logging
+Environment.  It is a tool for developers.  It is a very lightweight
+instrumentation facility which can tell you exactly where your software
+spends its time, and how it got there.  It can also show you exactly what
+happened just before your software managed to e.g. deadlock.  It will give
+you insight into what causes e.g. a nasty race condition.  VILE's main
+purpose was not meant to be yet another profiling tool, i.e. it is not meant
+to produce histograms of time spent in various functions (although you can
+certainly get that information from VILE).  The real purpose of VILE is to
+do for software developers what logic analyzers do for hardware developers.
+</P>
+
+<P>
+VILE most closely resembles a trace facility.  So why write yet another trace
+facility?  Because all freely available trace facilities are fairly intrusive.
+VILE can be used to instrument functions which take less than a couple of
+microseconds to execute without adversely affecting the instrumented function's
+timing.  Furthermore, VILE can be used in both <b>user and kernel</b> code.  It is
+<b>thread-safe, SMP-safe, and multi-process-safe</b>, which means that the trace
+buffer can safely be shared by multiple threads running in the same process, or in
+different processes, and potentially on different CPUs.  VILE does
+not <b>require</b> any explicit startup/shutdown, so it is useful in debugging
+problems which occur during early phases of application (or kernel) startup.
+If your application (or kernel) died with a core dump, then you can still get
+VILE data from it.
+</P>
+<P>
+I initially developed VILE as part of my work for Network Appliance, Inc.
+My thanks go to NetApp for supporting open source philosophy by allowing me
+to open-source VILE.
+</P>
+</blockquote>
+
+<p>The project is at very early stage (no file to download).
+There are just some files in the CVS repository, which is unactive
+since Jun 2003.
+</p>
+
+<p>In my opinion, it is a very rough API totally
+unfriendly and unusable by a begginer.
+However, I think some of the 
+
+I agree with the author regarding several ideas behind his project.
+
+</p>
+<p>In fact, VILE is quite close to my first implementation of logroller,
+i.e it uses a ring buffer to store few bytes of data, with thread safety
+done without using heavy kernel synchronisation objects.
+The main difference
+is that VILE store quite obscure data, and that I store pointers to
+literal strings.
+</p>
+
+<h4>CMR Namespace Project<h4>
+<p>
+<a href="http://sourceforge.net/projects/cmrnsp">Sourceforge</a><br />
+<a href="">Web site</a>
+<blockquote>
+The CMR namesapce project. A collection of various C++ templates used
+for common tasks in a C++ environment. This includes a policy based
+smart pointer template, DLL (single and multiple) management templates,
+Logging templates everything uspports UNICODE.
+</blockquote>
+</p>
+
+<h4>mlog<h4>
+<p>
+<a href="http://sourceforge.net/projects/mlog">Sourceforge</a><br />
+<b>No Web site</b>
+ 
+<ul>
+<li>license: Apache License V2.0</li>
+<li>dev platform: </li>
+<li>compiler: VC++ 6 project</li>
+</ul>
+
+<blockquote>
+mlog is a logging implementation, which is configuration based,
+portable, extendable, and simple to uses. It supports "logging-levels",
+"logging-catalogs" and "multiple output-targets".
+mlog is developments by liigo using C++ programing language.
+</blockquote>
+</p>
+
+<p>The project is at very early stage (no file to download).
+There are just some files in the SVN repository, which is unactive
+since Oct 2006. Here is the main API:
+</p>
+
+<p>The library defines its own string class MString, and mix C++
+with some C code (FILE*, malloc/free, printf, ...). 
+</p>
+
+<pre>
+//test_mlog.cpp
+
+#include &lt;stdio.h>
+#include "mlog.h"
+
+void test(const char* description, bool b)
+{
+	if(b)
+		printf("[OK] %s \n", description);
+	else
+		printf("[ERROR] %s \007\n", description);
+}
+
+void test_MString()
+{
+	MString str("abc");
+	str.AppendText("def");
+	str.InsertText(3, "--");
+	test("equals", str.EqualsTo("abc--def"));
+	str.SetText("123456");
+	str.InsertText(6, "789");
+	MString str2("123456789");
+	test("equals", str.EqualsTo(str2));
+
+	str = "abc";
+	str += "def";
+	const char* sz = str;
+	test("operator =, +=", str==sz);
+
+	str.SetText("0123456789", 3, 5);
+	test("set part text", str.EqualsTo("345"));
+	str = "0123456789";
+	str2 = str.GetText(3, 5);
+	test("get part text", str2.EqualsTo("345"));
+
+	str = "abc";
+	str2 = str + "123";
+	test("+", str2.EqualsTo("abc123"));
+
+	str = "!123";
+	str.Delete(0, 0);
+	test("delete", str.EqualsTo("123"));
+
+	str = "123...";
+	test("==", str == "123...");
+
+	str = "123...abc";
+	test("IndexOf", str.IndexOf("123.") == 0);
+	test("LastIndexOf", str.LastIndexOf(".abc") == 5);
+	test("LastIndexOf", str.LastIndexOf(".Abc") == -1);
+}
+
+void test_mlog()
+{
+	// get globale mlog instance using "GetMLog" macro, with a param specify the catalog.
+	MLog& log = GetMLog("");
+
+	log.trace("a trace log item.");
+	log.debug("a debug log item.");
+	log.info("an info log item.");
+	log.warning("a warning log item.");
+	log.error("an error log item.");
+	log.fatal("a fatal log item.");
+	log.print("a print log item.");
+
+	log.log("CatalogA", MLL_PRINT, "a log item of CatalogA");
+	log.log("CatalogA", MLL_WARNING, "a warn item of CatalogA");
+
+	// specify another catalog
+	log = GetMLog("CatalogB");
+	log.print("a print log item, belongs to CatalogB");
+
+	// uses the "mlog" macro
+	mlog.print("print");
+	mlog.debug("debug");
+	mlog.log("CatalogB", MLL_FATAL, "fatal");
+}
+
+int main(int argc, char** agrv)
+{
+	printf("begin test mlog \n");
+
+	test_MString();
+
+	test_mlog();
+
+	printf("end test mlog. press any key to exit. \n");
+
+	int c;
+	scanf("%c", &c);
+	return 0;
+}
+</pre>
+
+<h4>Riverdrums Library (librd)<h4>
+<p>
+<a href="http://sourceforge.net/projects/librd">Sourceforge</a>
+<b>No web site</b>
+<blockquote>
+A C library with support for logging, configuration, networking,
+message specification, semaphores, message queues, SSL, timing,
+epoll and email functionality.
+</blockquote>
+</p>
+
+<p>The project is at very early stage (no file to download).
+There are just some files in the CVS repository, which is unactive
+since Feb 2006. Here is the main API:
+</p>
+
+<pre>
+#ifndef FILELINE
+# define FILELINE __FILE__, __LINE__
+#endif
+
+#define RDCRIT(log, x)   RD__log(log, 1, "[%s:%d] %s", FILELINE, x)
+#define RDERR(log, x)    RD__log(log, 2, "[%s:%d] %s", FILELINE, x)
+#define RDWARN(log, x)   RD__log(log, 3, "[%s:%d] %s", FILELINE, x)
+#define RDLOG(log, x)    RD__log(log, 4, "[%s:%d] %s", FILELINE, x)
+#define RDTRACE(log, x)  RD__log(log, 5, "[%s:%d] %s", FILELINE, x)
+#define RDDEBUG(log, x)  RD__log(log, 6, "[%s:%d] %s", FILELINE, x)
+
+#define RDSTART(log)   RD__log(log, 5, "[%s:%d] >> START %s()", FILELINE, __FUNCTION__)
+#define RDSTOP(log)    RD__log(log, 5, "[%s:%d] &lt;&lt; STOP  %s()", FILELINE, __FUNCTION__)
+
+struct rdlog {
+  char *logfile;    /**&lt; File to log to */
+  int   loglevel;   /**&lt; Level to log at (1 - 6) */
+  short lock;       /**&lt; Lock the file before writing to it */
+  short timestamp;  /**&lt; Print a date and time stamp before each log entry */
+  short type;       /**&lt; Print the level type */
+  short pid;        /**&lt; Print the process ID */
+  short print;      /**&lt; Print messages to stdout as well as logging them */
+  FILE *fp;         /**&lt; Open file descriptor, used with keepopen */
+};
+
+struct rdlog * RD__log_init(char *file, int level, short lock, short timestamp, short type, short pid, short keepopen, short print);
+int  RD__log(struct rdlog *log, int level, char *msg, ...);
+void RD__log_free(struct rdlog *log);
+</pre>
+
+<p>I guess it was designed to be used like this:
+</p>
+
+<pre>struct rdlog *log = RD__log_init( ... );
+RDSTART(log);
+
+RDCRIT(log, "CRITICAL"); 
+RDERR(log, "ERROR");
+RDWARN(log, "WARNING"); 
+RDLOG(log, "LOG");  
+RDTRACE(log, "TRACE");
+RDDEBUG(log, "DEBUG");
+
+RDSTOP(log);
+
+RD__log_free( log );
+</pre>
+
+
+<h4>The C++ Debugging Support Library (libcwd)<h4>
+<p>
+<a href="http://sourceforge.net/projects/libcwd">Sourceforge</a>
+<a href="http://libcwd.sourceforge.net/">Web site</a>
+<blockquote>
+Keywords: Debugging C++. Thread-safe. Ostream based debug output. Source file and line number locations. Printing demangled types and symbol names. Custom debug channels and devices.
+</blockquote>
+</p>
+
+<h3>Non Sourceforge</h3>
+
+
+<h4>RLog<h4>
+<p>
+<a href="http://freshmeat.net/projects/rlog">Freshmeat</a>
+<a href="http://arg0.net/wiki/rlog">Web site</a>
+<blockquote>
+RLog provides a flexible message logging facility for C++ programs and libraries. It is subscription based, meaning you can subscribe to messages of your choice in an number of ways: by hierarchical channel name (e.g. "debug", "debug/ special", "error", etc.), or filename, component name, etc. Log messages are individually enabled. It is meant to be fast enough to leave in production code - even where it may be called many times, as both the GCC and Intel compilers reduce the logging overhead a few clock cycles if they are dormant (with no subscribers). Other add-on components can extend subscriptions to external programs, allowing you to enable and collect debugging messages remotely.
+</blockquote>
+</p>
+
+<h4>NoBug<h4>
+<p>
+<a href="http://freshmeat.net/projects/nobug/">Freshmeat</a>
+<a href="http://www.pipapo.org/pipawiki/NoBug">Web site</a>
+<blockquote>
+NoBug is a library which provides assertions, logging statements, and annotations for C and C++ programs. It includes pre-/post-condition and invariant checks, as well as generic assertions. Checks are enabled based on build-levels and scope tags. It also includes debugger support (valgrind), dumping of data structures, logging your application's activities, runtime customizable logging via environment variables, different logging targets (ringbuffer, stderr, syslog, debugger, etc.), and annotation of your source code regarding known bugs, things to do, and planned things.
+</blockquote>
+</p>
+
+<h4><h4>
+<p>
+<a href="http://freshmeat.net/projects/itm_libtool/">Freshmeat</a>
+<a href="http://www.jmcresearch.com/projects/libtool/">Web site</a>
+<blockquote>
+IT/m libtool is a C++ library that provides some generic, useful tools to manage time, errors, locks, logging, semaphores, attribute/value containers, trees, regular expressions, number conversion, string formatting tools, etc.
+</blockquote>
+</p>
+
+<h4>EzLogger<h4>
+<p>
+<a href="http://axter.com/ezlogger/">Web site</a>
+<blockquote>
+<p>EzLogger is a C++ logging library that can easily be added to an implementation. It can be used with both C++ style stream operators and C style printf functions.
+For windows, the default policy logs the data to a text file with the same name and path of the executable, and having a postfix _debuglog.txt.
+For none windows platform, the default policy logs the data to a file named ezlogger_output.txt. For details see ezlogger_output_policy
+</p>
+<p>
+All logging is performmed through macros. This allows the logging class to automatically receive source file name, source line number, and source function name. There are four sets of macros. Two sets have fixed value verbosity level logging, and the other two sets have variable verbosity level logging.
+The macro prefix determines what set it belongs to.
+</p></blockquote>
+</p>
+<pre>
+// Example code for EZLOGGER macros
+#include "ezlogger_headers.hpp"
+
+void ezlogger_simple_example()
+{
+        int i = 123;
+        std::string somedata = "Hello World";
+
+        //Simple usage with standard verbosity level
+        EZLOGGERSTREAM &lt;&lt; somedata &lt;&lt; " " &lt;&lt; i &lt;&lt; std::endl;
+
+        //Can use alternate stream
+        EZLOGGERSTREAM2(std::cerr) &lt;&lt; somedata &lt;&lt; " next line " &lt;&lt; i &lt;&lt; std::endl;
+
+        //Verbosity level logging example
+        EZLOGGERVLSTREAM(axter::log_often) &lt;&lt; somedata &lt;&lt; " " &lt;&lt; i &lt;&lt; std::endl;
+
+        //Complex extended data example
+        EZLOGGERVLSTREAM(axter::levels(axter::log_often, axter::warn, __FUNCSIG__ /*or GNU PRETTY_FUNCTION*/, "Xyz Facility")) << somedata << " " << i << std::endl;
+}
+</pre>
+
+<h3>http://www.codeproject.com/debug/#Trace</h3>
+
+<p>see:
+http://www.xmlblaster.org/xmlBlaster/doc/requirements/client.cpp.logging.html
+
+</p>
+
+<h4><h4>
+<p>
+<a href="">Sourceforge</a>
+<a href="">Web site</a>
+<blockquote>
+</blockquote>
+</p>
+
+<ul>
+<li>output: </li>
+<li>dev platform: </li>
+<li>compilation: </li>
+<li>requisites: </li>
+<li>filtering:</li>
+<li>library errors:</li>
+<li>the user must specify the log file name</li>
+<li>include header:</li>
+<li>documentation:</li>
+<li>library source code size:</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<h3>Is logging dumping?</h3>
+
+<img src="images/772668_bagger-ferropolis_1.jpg" width="150" heigh="112" />
+
+<p>Some logging libraries are designed to efficiency log big chunk of data,
+sometimes after having converted them in base64.
+But before searching for a way to do that, may be we should wonder:
+is logging a big piece of text a good idea? Or, in other word, "what is
+logging good for?". 
+</p>
+
+<p>It is good to ask this question because is can have a serious impact
+on your design in a multithreaded persistent context. If you store
+all the logged data in a centralized buffer, only one message can
+be stored at a time. The more time a thread spend time in storing the
+new message, the more he will block the other thread if they try to log
+a new message.
+</p>
+
+<p>What about a big object separate pool? => synchronisation between
+the pools? What about associating a pool with a static data info?
+</p>
+
+<pre>
+log() &lt;&lt; hex64( big_data, size );
+</pre>
+
+<p>hex64 peut renvoyer un objet spécial construit dans un pool en parallele
+(après son ajout rapide a la liste principale) qui est envoyé vers une
+sortie spéciale uniquement, éventuellement en binaire!
+</p>
+
+<p>If I have 10 threads, will I have 10 times more data to log? i.e, should
+I increase the size of my buffer if I use many threads?
+</p>
+
+</body>
+</html>

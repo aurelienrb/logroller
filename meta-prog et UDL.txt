@@ -1,0 +1,68 @@
+
+class string_builder {
+public:
+	string_builder(const char * str) constexpr : raw_str(str) {
+		for (int i = 0; str[i] != '\0'; ++i) {
+			if (str[i] == '%') {
+				nb_args += 1;
+			}
+		}
+	}
+	
+	string_builder & operator(auto && T) const {
+	
+	}
+
+
+private:
+	int nb_args = 0;
+	const char * raw_str;
+	
+};
+
+string_builder operator"" _format(const char * str)
+{
+    return string_builder(str);
+}
+
+---
+POC:
+
+#include <string>
+#include <iostream>
+
+class string_builder
+{
+public:
+	string_builder(const char * msg) : m_msg(msg) {
+	}
+	
+    std::string operator()(const char * arg) const {
+        std::string msg = m_msg;
+        
+        auto pos = msg.find("%1");
+        if (pos != std::string::npos) {
+            msg.replace(pos, 2, arg);
+        }
+        
+		return msg;
+	}
+private:
+	const char * m_msg;
+};
+
+string_builder operator"" _format(const char * str, std::size_t len) 
+{
+    return string_builder(str);
+}
+
+int main() {
+	std::cout << "Hello %1!\n"_format("World");
+}
+---
+
+Meta-programmation douce "gentle meta-programming"
+
+Exemples de meta-programmation courante et utile (qui simplifie le code / le rend plus performant de façon transparente):
+- emplace_back()
+- operator+() de QString

@@ -1,0 +1,197 @@
+http://lists.boost.org/Archives/boost/2005/11/96710.php
+
+
+From: Gennadiy Rozental <gennadiy.rozental <at> thomson.com>
+Subject: Boost.Logging: formal review
+Newsgroups: gmane.comp.lib.boost.devel
+Date: 2005-11-12 22:45:37 GMT (1 year, 45 weeks, 1 day, 8 hours and 28 minutes ago)
+
+Hi,
+
+Being the author of at least 3 different solution for logging/tracing 
+myself, I do believe it's one of the most important general purpose library 
+in big project development. Unfortunately proposed submission in no way came 
+close to being an acceptable choice. Numerous design and implementation 
+issues, weak user and absent reference documentation and  absent test suite 
+(last two points is something that review manager is responsible for IMO. No 
+tests or docs - no review. That's it) result in: My vote is NO. Please read 
+further for detailed analysis.
+
+I. Design Flaws
+------------------
+
+1. Filtering support
+I understand that author strived to minimize the solution, but IMO it lead 
+to minimal value. IMO proper log system should support arbitrary user 
+defined filtering of log entries. At the bare minimum it should support:
+
+entry level - levels set is ordered set of values indication importance of 
+information provided. Filtering is based on threshold. Examples: DEBUG, 
+INFO, MAJOR
+
+entry category - categories set is a set of unique values indicating kind of 
+information provided
+Filtering is based on masking. Examples: ARGS, RETURN_VALUE, ERROR_LOG, 
+DATA_FLOW, PROG_FLOW
+
+entry keyword - keyword set is set of user defined keywords (most frequently 
+strings) identifying area of the program. Filtering is based on match of 
+keywords. Keywords usually are used to mark specific part of application. 
+Example: "NetworkLevel", "UI", "ABC" to mark class abc, "dfg.cpp"
+
+Also multithreaded application should support filtering based on thread id.
+
+The best solution would allow to plug-in at compile time any user defined 
+Filter (in a form of Policy). This way I could have a log that filter 
+nothing (no filters defined) or log that filter based on time of the day if 
+I want.
+  This submission does support level filtering - and that's it.
+
+2. Configuration support
+Submitted solution supports configuration in a form of arbitrary modifiers 
+that user could register in log. While this looks like very inflexible it's 
+also as very inconvenient. In most cases I prefer log to be configured at 
+run time from within configuration file. his would be very cumbersome with 
+modifiers model. Not only each modifier needs to be added separately. I also 
+need to keep track of it's name to be able to remove it and it's index to 
+know how modifiers are ordered. This ability to configure log remotely in 
+many locations makes it impossible to really know what and how is written 
+into log.
+   My preferred way to configure the log is with use of configuration 
+string. First of all it's simplify an interface and you immediately see how 
+your log entries going to look like. Here is an example:
+"keyword=*,-ACD;categ=prog_flow,return 
+value,-details;l=debug;track=on;roll=10000;prefix=file ( line ) - time 
+:;timeformat=%s:%m".
+
+Using pluggable factory pattern you could implement this to be as flexible. 
+Eventually as an add-on you could provide an ability to register any custom 
+modifiers, but that is not necessary in first draft.
+
+3. Per output configuration.
+Log may have multiple appenders attached (BTW - I very much prefer term used 
+by iostreams library - sink). what if I want different entry 
+formatting/prefixing/filtering in different outputs. I may have 
+errors_output which contains only errors. I may have end_user_log that 
+contains only major information for end user with detailed time and date of 
+the entry. And I may have developer_output that contains performance 
+warnings with file and line information. Submitted library have no support 
+for this.
+
+4. Internationalization support
+I do see some vague traces in code that indicate that author new this needs 
+to be supported. But since documentation have exactly zero information and I 
+couldn't figure out how to do it myself, I assume that library doesn't 
+support this. IMO it's required for industrial strength solution.
+
+5. File and line
+This solution completely ignores file and line number of trace entry. IMO 
+They are essential and should be collected for every entry (may not be 
+reported - depends on prefix format)
+
+6. Misfeature: pre-init cashing
+Library starts with cashing turned on to support pre-init logging. IMO this 
+is too dangerous. Now developer needs to remember how many log entries are 
+printed. Otherwise some of them will just start disappearing (could be 
+different in every run). And it may start happening only at the user site. 
+Much more reliable solution is to use some kind of startup log that does not 
+require configuration.
+
+7. Misfeature: log hierarchies
+I personally never have a need for that and have some difficulties to 
+imagine why would anyone have. You could probably have it on top of existent 
+solution as add-on. If it doesn't require any new interfaces (or some 
+minimal addition). IMO library pays way to much attention to this. All these 
+manipulate_logs(...) by name that is analyzed not needed. In my experience I 
+never wonted to configure more than one log identically. And it's much more 
+preferable to keep all the configuration of one log in one place. So I 
+wouldn't look around to see what and how was configured.
+
+8. Misfeature: compile-time log support
+As it clear from above IMO log is (almost) never always enabled (and in any 
+case there is a way to implement this without any additional support). And 
+always disabled log could be implemented on macro level. Based on this I 
+believe all the compile_tile machinery employed by library is unnecessary 
+and just complicate implementation
+
+9. Interface
+IMO primary interface advertised by library should be macro-less. 
+Documentation does need to cover how these macros needs to be written, but 
+with user defined filters user will need to do the job oneself. Also in my 
+experience I found that on some systems Even if( ... ) <actual log here> 
+could be unsatisfactory from performance standpoint. I employ one global 
+Boolean is_log_on flag to guard all my log entries. and it should be a part 
+of these macros
+
+10. Performance.
+I am not sure wheather it's design or implementation issue, but library does 
+a lot of premature pessimizations, which could be avoided. See in more 
+details bellow.
+
+II. Implementation flaws
+------------------
+
+1. File appender hierarchy
+To implement custom rolling library employs inheritance. This is clear 
+example where delegation would be much better choice. Single file_sink that 
+could be initialized with file_roller.
+
+2. Multithreading support implementation
+  a) For some unclear reason author chose to reimplement some of 
+Boost.Threads functionality in some places (and in some places Boost.Thread 
+is used always). I believe log library shouldn't do this.
+   b) I noticed some fishy construct (m_destroyed data member). It opens 
+some thread safety issues IMO.
+   c) static manager_type & manager() doesn't look thread safe.
+
+3 . enabled_logger::m_stream
+For some reason enabled_logger allocates m_stream dynamically for each log 
+entry. I do not see why we need to do this. Even more: why not reuse a 
+single instance per thread?
+
+4. collection in use
+appender_array and modifier_array are better be implemented using lists
+
+5. exception support
+
+try {
+    LOG << "aaa" << foo()
+}
+catch(...) {
+    LOG << "exception"
+}
+
+This construct doesn't seems generate what is expected if foo() throws an 
+exception
+
+5. appender_array
+appender_array seems to be defined in 2 placed
+
+6. Appenders copying.
+>From code it seems that each logger has its own copy of each appender. Why 
+would we need that?
+If we do why all the appenders are so heavy?
+
+7. #ifdef UNICODE
+#ifdef UNICODE are spread all over the code. It needs to be centralized
+
+8. shared_memory.hpp
+This header refer to the library that is not part of boost yet. I don't 
+think it should be part of this submission.
+
+9. Time string cashing
+prepend_time and prepend_time_strf calls are not cashed. It's a lot of work 
+for nothing.
+
+10. write_msg locking
+write_msg shouldn't lock on appenders writing. Each appender should be 
+locked independently instead.
+
+Documentation is better be commented by somebody else. I thing though : no 
+reference docs whatsoever. As well as no test suite.
+
+Hope my comments were constructive.
+
+Regards,
+
+Gennadiy

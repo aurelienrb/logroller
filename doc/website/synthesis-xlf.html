@@ -1,0 +1,192 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>The eXtensible Logfile Format (XLF)</h3>
+
+<p>A good source of reflexion about what is logging is the
+<a href="">eXtensible Logfile Format (XLF) Working Group</a>.
+The goal of the XLF Working Group is defined as this:
+</p>
+
+<blockquote>
+The eXtensible Logfile Format (XLF) project is an attempt at developing
+a base logfile format that can be easily extended to serve the needs of
+any kind of application's logging needs.
+</blockquote>
+
+<p>The justification for such a project is the following:
+</p>
+
+<blockquote>
+Programs rarely stand alone anymore - why should their histories
+be balkanized into incompatible formats?
+When more than one application has participated in a significant
+event on your system, ad-hoc logfile formats make it a pain to
+merge or analyze logs from disparate programs that have participated
+in some foul-up that you later need to examine.
+<br />
+What we need is a standard logfile format that is simple enough
+to get used by a majority of real-world projects & products,
+yet flexible enough to be useful to varied applications
+with idiosyncratic needs.
+</blockquote>
+
+<blockquote>
+An "XLF Working Group" was announced in 1998, but apparently was not successful in creating and publishing a standard. However, there may be a few instances where their draft 1.0 specification has been used in the wild.
+<br />
+We at Graphical Dynamics developed this logfile format for use in our products, when we discovered the original work, also called "XLF". Some concepts in this draft standard were inspired by the XLF 1.0 draft, especially the concept of logging sessions. But 1.9.1 is simpler and many of the details are different.
+<br />
+So we're calling the new proposed XLF standard "XLF 2.0", and this initial draft proposal is XLF 1.9.1. It's anticipated that XLF may go through several revisions in an open process before we settle on a true dot-zero version.
+</blockquote>
+
+<p>It claims to be a group, but unfortunately it seems that
+most of the current work have been done by only one person,
+named Jennifer Palonus, who says its work was
+<i>inspired by an earlier effort at an XLF standard published
+in 1998, called XLF 1.0. Unfortunately XLF 1.0 doesn't seem
+to have been adopted by many developers</i>.
+In spite of the efforts of Jennifer to produce
+<i>a good, solid XLF 2.0 standard that the vast majority of
+developers out there will be happy to use</i>,
+the project is unactive since April 2007, which may be
+interpreted as the sign of a second failure.
+This give an idea of the difficulty to deal with a generalized
+approach of logging and the lack of interest of people with it.  
+</p>
+
+<p>Whatever, Jennifer wrote several interesting documents where
+she asks and tries to answer few essential questions:
+</p>
+
+<ul>
+<li>1. What are all the ways in which a log file is used?</li>
+<li>2. What really needs to be in a log file?</li>
+<li>3. What are the different kinds of logging configurations (use-cases)?</li>
+<li>4. What are the constraints on a good logfile format?</li>
+</ul>
+
+<h4>1. What are all the ways in which a log file is used?</h4>
+<blockquote>
+Here's a basic philosophical question: What are all the ways in which a log file is used? Here are the uses that I can think of:
+
+    * Postmortem crash analysis (is this info normally sent to the general log file?)
+    * Problem analysis (lesser (or more subtle) problems than an actual crash)
+    * Debugging support (alternative to OutputDebugString or stepping thru with debugger)
+    * Performance monitoring (as in weblogs)
+    * Undo buffer (as in database logs) 
+</blockquote>
+
+<h4>2. What really needs to be in a log file?</h4>
+<blockquote>
+This question depends on the answers to my previous one, "What is a log file good for?"
+
+But I think there are a few elements to a logfile entry that should be universal.
+
+    * Date/time stamp
+    * Some text or a code describing what happened
+
+
+
+Some elements that are very nice to have (but not necessarily mandatory):
+
+    * System error code or program error code, if an error caused the log event
+    * An indication of the specific record or dataitem or action that caused the error
+    * Program name or path that generated the log event
+    * Computer name & IP address. Especially if log events are being sent from several computers to a common logfile or log server.
+    * ProcessID of the program generating the log events, to distinguish between different runs (or concurrent instances) of the same program.
+</blockquote>
+
+<h4>3. What are the different kinds of logging configurations (use-cases)?</h4>
+<blockquote>
+The most common configuration for a logging environment is where each program writes log events out to its own dedicated file. But there are other possible configurations as well, such as several programs sending logevents to the common Windows event log.
+</blockquote>
+
+<p>Jennifer identifies <i>three archetypal scenarios for how
+logfiles are typically used in a system</i>: 
+</p>
+<ul>
+<li>Single program, single logfile</li>
+<li>Multiple programs, single logfile</li>
+<li>Multiple programs and a logging service</li>
+</ul>
+
+<h4>4. What are the constraints on a good logfile format?</h4>
+<ul>
+<li>Lightweight</li>
+<li>Forgiving</li>
+<li>Forehead simple</li>
+<li>Efficient</li>
+<li>Easily customized</li>
+<li>Extensible</li>
+</ul>
+
+<p>Finally, some issues are pointed out regarding the use of xml for logging.
+In particular, data can not been directly appended to the end of an exisiting
+xml file, because of the enclosing root tag which must ends the document.
+</p>
+
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;xlf version="1.9.1">
+  &lt;logevent dt="2007-04-06T17:01:20">John logged out.&lt;/logevent>
+  &lt;logevent dt="2007-04-06T17:01:45">Carol logged out.&lt;/logevent>
+  &lt;logevent dt="2007-04-06T17:12:10">Andy logged out.&lt;/logevent>  
+  &lt;logevent dt="2007-04-06T18:00:00">Program ended.&lt;/logevent> 
+&lt;/xlf>
+</pre>
+
+<p>To append a new log event, you must do <i>intelligent appending</i>,
+i.e <i>quickly determine where the existing closing tag starts,
+since this is where we want to write the new line, and after
+it the closing "&lt;/xlf&gt;"</i>.
+To do that, you must <i>assume that the closing tag is well-formed
+from the tagname (i.e. the closing tag for xlf is written as
+"&lt;/xlf&gt;" with no newlines or other whitespace after it)</i>
+and to know the character encoding.
+</p>
+
+<p>An other solution is to set the &lt;xlf&gt; tag attribute
+<tt>closetags</tt> to zero:
+</p>
+
+<blockquote>
+Set this to "0" if the logfile does not end with a &lt;/xlf&gt; tag,
+but instead simply has  &lt;session>,  &lt;logevent>, and  &lt;debugevent>
+entries appended to the end of it.
+</blockquote>
+
+<p>So, the following log file is a valid XLF 1.9.1 file:
+</p>
+
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;xlf version="1.9.1">
+  &lt;logevent dt="2007-04-06T17:01:20">John logged out.&lt;/logevent>
+  &lt;logevent dt="2007-04-06T17:01:45">Carol logged out.&lt;/logevent>
+  &lt;logevent dt="2007-04-06T17:12:10">Andy logged out.&lt;/logevent>  
+  &lt;logevent dt="2007-04-06T18:00:00">Program ended.&lt;/logevent> 
+</pre>
+
+<p>even if it is not a valid XML file because the enclosing tag is missing.
+</p>
+
+<h4>Personnal opinion</h4>
+<p>The last point raise the question <i>Is XML such an interesting format
+for logging?</i>. I mean, several people worked on producing the specification
+of a format which is not really XML and which adds almost nothing more than
+tag overhead to an equivalent plain text file, while making it more difficult
+and slower to use in a real time logging context. 
+</p>
+
+<p>So I think that the questions raised by Jennifer ans its answer are very
+interesting, but she also demonstrate the poor interest of XML for a
+<i>standard logfile format that is simple enough to get used by a
+majority of real-world projects</i>. Moreover, such a format already exists
+and is even used as an inspiration for her work: the syslog specification (RFC 3164).
+</p>
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Motivation</h3>
+
+<img src="images/879403_simple_note_1.jpg" width="150" heigh="126" />
+
+<p>There are several very mature logging libraries which already exist for C++.
+The most famous ones are:
+</p>
+<ul>
+<li>log4cpp</li>
+<li>log4cplus</li>
+<li>log4cxx</li>
+<li>pantheios</li>
+<li>ACE</li>
+</ul>
+
+<p>So, why yet another logging framework?
+</p>
+
+<h3>KISS: Keep It Simple, Stupid</h3>
+<h3>Log++ is proud to be stupid</h3>
+
+<p>Like any software, Log++ is stupid, it simply does what someone tried to tell him to do.
+But unlike some other software, it accepts this fact and is proud to be stupid.
+There is no smart feature in Log++.
+Most of the time, when a feature is said to be smart, it is even more stupid
+than the stupid ones. Because it tries to make decisions for you, and unless
+you are dump, it is not easy to develop something which does exactly what you
+want. So, I think, the best thing to do is to develop simple things that take
+as few decisions as possible and give the user the ability to do things the
+way he wants. We are C++ developpers, we like C++ because it does not make
+choices for us, but give us the ability to choose between many different
+possibilities. We don't have to the standard string type if we don't want.
+We can use hundreds of other types, because C++ creators decided not to oblige
+us to do so. Log++ is for C++ developpers, so it tries not to make choice for them.
+</p>
+
+<h3>Make logging simple and useful, not boring and complex</h3>
+
+<p>Everybody wants to make software as easy to use they are useful.
+However, the problem we have, us, software developer, is we design
+solution that seems nice from our point of view, but wich doesn't fit
+the desire of the users. Making things simple is much more difficult
+than adding complexity. Let's have a look at an example:
+</p>
+
+<pre>
+if(pantheios::isSeverityLogged(pantheios::error))
+{
+    pantheios::log_ERROR("Point: {", point.x, ", ", point.y, "; area=", point.x * point.y, "}");
+}
+</pre>
+
+<p>The above code is a typical example of adding useless complexity.
+We just want to log some information, we should not have to care when we should
+log it and when we should not. We should have to test if the logging framework
+wants our message or not, we should be able to simply log it.
+</p>
+
+<p>I even think such a code is a big mistake, because we let the code decide
+if the information it logs is useful or not. In my opinion, such a decision
+should only be done by the final user, i.e the programmer. I think the programmer
+is a big boy, and he his the best one to decide if he want to see this message
+or not. This is called <b>filtering</b>. In my conception of a good logging framework,
+there should be no <tt>filtering</tt> at the source code level. Everything that can
+be logged should be logged. Sure, it may generate a lot of unwanted messages, but
+this can be easily corrected by the final user if he use a <b>proper tool</b> to
+filter the output.
+</p>
+
+<p>
+Let's have a look at a typical scenario. You develop a new class. So, you put some
+trace messages almost everywhere in your code. It is very useful while you are developping
+and debuging this class. However, it comes a day when your class is almost bug free,
+and does everything you want to right way. At the same time, you are developping an other
+new class, which also do come tracing in order to help debuging. And the log output from
+the first class begins to become undesirable, because you what know your code do is now correct
+and always do the same thing, so all this messages which use to be very useful in the past
+are now quite comparable to some spam. You no longer need it, and even more, you don't want
+to see them because they add confusion to the output you are interested in, i.e the output
+from the new class your are developping.
+</p>
+
+<p>This is a very typical scenario of how things work in the real life.
+Logging libraries try to solve this with level of loging. So there is the level 0,
+then the warning level 1, and then the warning level 2, and the again the warning level 3,
+and then come the error level 1, the error level 2 and finnaly the error level 3. 
+</p>
+
+<p>The first time I discovered this, I thought "Hum, that might be a useful feature".
+Today, I am wondering who is seriously using this. That means each time you write some code
+you have to think about the severity of your logging message. "Ok, is this a warning message
+of level 2 or level 3?".
+</p>
+
+<p>Again, in my opinion, this is over complexified. And again, it is due to bad <tt>filtering</tt>.
+Trying to decide at the source code level if a message should be printed or not by giving it a level
+of interest is, still in my opinion, a wrong approach. I think it is impossible to do such a thing,
+be cause the level of interest of a message may vary depending on:
+</p>
+
+<ul>
+<li>the user running the software (he his the developper debugging this code or not)</li>
+<li>the use of that piece of code (unit testing, debug build, release build)</li>
+</ul>
+
+</p>In Log++, we just make a distinction between messages <b>types</b>, that's all.
+You can freely define you oan type. In addition to its type, a message is also attached
+other informations such as the source file location. All these informations, put together,
+can be used in the <tt>log viewer</tt> for <tt>filtering</tt> <b>on demand by the final user</b>.
+Messages a filter by <tt>types</tt> and <tt>location</tt>, rather than by <tt>levels</tt>.
+</p>
+
+<p>The filtering of the log output is not done at the source code level.
+</p>
+
+<h3>So you log a lot of information! What about the performances?</h3>
+
+<p>The philisophy of Log++ is to log as much information as it can.
+A typical C++ developper might point out the fact that it may be slow and
+memory consuming. En effect, some people do care about performance of logging.
+Personnaly, I don't. The first logging library I developped had really bad performances,
+and I could not notice in the final application, even in debug builds.
+</p>
+
+<p>The fact is few software generate more than 1Mo of log data after 10 minutes of use.
+And writing 1Mo of text in a file in C++ is really fast nowadays, it can take less than
+1 second on some modern computers. So the overhead of loosing few seconds for logging
+while running an applications for 600 seconds may me discutable.
+</p>
+
+<p>However, some might argue the statistics I give are discutable, and others may give
+examples where logging performances are critical. If you are one of them, I have good
+news for you: Log++ is very fast and light.
+</p>
+
+<h3>How fast is Log++</h3>
+
+<p>Log++ is optimized by design. It has been developped to log in a very efficient maner
+the typical following usage:
+</p>
+
+<pre>void Test()
+{
+    log_trace() &lt;&lt; "Hello World!";
+} 
+</pre>
+
+<p>
+Log++ will log the string "Hello World!" of course,
+but also the source file name, the function name, the line code number,
+the message type (TRACE), and some other facultative information (Thread ID, time, ...).
+</p>
+
+<p>This will be done very quickly, by writting few bytes in a special buffer dedicated to
+Log++ memory management, without any dynamic allocation. How is it possible?
+</p>
+
+<p>To understand the tricks used by Log++, let's analyse the expanded macro code corresponding
+to the above example:
+</p>
+
+<pre>void Test()
+{
+    const static zlog_entry_static_infos entry_line15 = { __FILE__, __LINE__, __FUNCTION__, LOG_TYPE_TRACE };
+    zlog::instance() = zlog::new_entry(&entry_line15) &lt;&lt; "Hello World!";
+} 
+</pre>
+
+<p>As you can see, all information than can be known at compile time is stored in a static object.
+Because this object is a POD, static and const, it is placed by the linker in an initialised data section
+of the binary file, which means that there is no performance overhead even during the initialisation of
+the application (no constructor called).
+</p>
+
+<p>When you log a new message, Log++ use this trick to associate all this information by only copying 1 pointer,
+which is a very fast operation.
+</p>
+
+<p>Now, what about the message itself. Before going more in the details, lets have a look at the
+following valid C++ code:
+</p>
+
+<pre>
+#include &lt;iostream&gt;
+
+template&lt;typename T, size_t N&gt;
+inline size_t length_of(T(&amp;)[N])
+{
+    return N;
+}
+
+int main()
+{
+    std::cout &lt;&lt; length_of( "Hello World!" ) &lt;&lt; std::endl;
+}
+</pre>
+
+<p>The programm will output 13, i.e the length of the string "Hello World!" plus the
+trailing terminator. 
+</p>
+
+<p>Thanks to this C++ trick based on a functionality called template argument deduction,
+it is possible to know the size of a string literal <b>at compile time</b>. It also give
+us the possibility to if a  string is a literal one or not. For example:
+</p>
+
+<pre>
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+template&lt;typename T, size_t N&gt;
+void print(T(Str&amp;)[N])
+{
+    std::cout &lt;&lt; "String literal: " &lt;&lt; Str &lt;&lt; std::endl;
+}
+
+void print(const char * Str)
+{
+    std::cout &lt;&lt; "String non literal: " &lt;&lt; Str &lt;&lt; std::endl;
+}
+
+int main()
+{
+    print( "literal!" );
+    std::string s( "non literal!" );
+    print( s.c_str() );
+    const char *ptr = "literal!";
+    print( ptr );
+}
+</pre>
+
+<p>Will output:
+</p>
+
+<pre>
+String literal: literal!
+String non literal: non literal!
+String non literal: literal!
+</pre>
+
+<p>This example also shows the limits of this trick. You can not detect if the string pointed
+by a pointer is a literal one or not (like for the ptr variable). You must give directly the
+literal string in order to make it works.
+</p>
+
+<p>Thanks to this other trick, it is possible for Log++ to know if a string is a literal one
+or not. What it is useful for? Well, for the same reason a previously with the static data trick:
+if the string is literal, it is permenently stored by the linker in an initialised data section,
+which mean we don't have to copy it, we can simply keep a pointer to it! And because most of the time
+this initialised section is read only and protected by the OS, and because it is an undefined behaviour
+to modify such strings from a C++ point of view, there is no risk to loose this literal string.
+</p>
+
+<p>So, logging this string is done in 2 simple operations: storing a pointer to its contents and
+storing its length (so we can later improve its reading time later).
+</p>
+
+<p>There is of course some extra overhead due to the logging buffer management, but here also,
+it is very light. The buffer used by Log++ is a circular one, of fixed size, allocated once for
+all the threads. Log++ is hence designed to use a limited amount of memory.
+</p>
+
+<p>When the buffer is full, it is "rotated", i.e it is reused and the previous log entries are slowly
+overwriten. This operation of resusing the buffer is called a <tt>rotation</tt>.
+</p>
+
+<h3>So, when the buffer is full, there is a rotation, and we begin to loose previous logged messages!</h3>
+
+<p>That's true for the messages stored in the circular buffer memory. However, a <tt>roration</tt> is a
+special event that can be configured to transfer the buffer content to another place before begining to
+overwrite it. For example, it can be a stupid file on disk. Each time a <tt>roration</tt> occurs (it should
+not happen often is the buffer size if well choosen), its contents is dumped on disk. It also have the
+advantage of reducing the number of file disk access.
+</p>
+
+<p>It is also possible to let another process to save the log data by giving Log++ a buffer allocated
+in some shared memory. By reading in the process memory, this other process can easily retrieve the 
+literal strings an the other informations strored in the initialized data section. This can be done once
+when the other process discover a particular address, so it can quickly construct a copy of the initialized
+data. The <tt>roration</tt> event can then inform that other process to synchronize its copy of the log data
+with the current one being overwriten, so it does not miss any log entry. 
+</p>
+
+<p>This use of another process has the advantage to give to move in another process the cost of analysing
+and printing the log data. Modern computers tends to have several processor cores, so this trick help
+to reduce the cost of logging in your process by running another one on another processor.
+</p>
+
+<p>Even more tricky, it is possible to reuse your process as a log manager for itself. To do that, it simply
+starts a new instance of itself and share some memory with it. This has the advantage that the log manager
+share the exact copy of the initialised data section, so it doesn't have to read in the client memory to
+retrieve the content of the literal strings!
+</p>
+
+<h3>Comparison to other libraries</h3>
+
+<table border="1">
+<tr>
+  <th>Name</th>
+  <th>Size of minimal core part</th>
+  <th>Additional dependencies</th>
+  <th>Support of wide strings</th>
+</tr>
+<tr>
+  <td>LogRoller</td>
+  <td>XX Ko</td>
+  <td>None</td>
+  <td>Yes (limited to compiler support)</td>
+</tr>
+<tr>
+  <td>Pantheios</td>
+  <td>XX Ko</td>
+  <td>STLSoft</td>
+  <td>No (may be in future version)</td>
+</tr>
+</table>
+
+<h3>Pantheios</h3>
+<p>
+</p>
+
+<h3>log4cxx</h3>
+
+<p>log4cxx is based on the attribution of levels to logging requests.
+</p>
+
+
+<p>The documentation of log4cxx says (http://logging.apache.org/log4cxx/manual.html):
+</p>
+
+<blockquote>
+<p>A logging request is said to be enabled if its level is higher than or equal to the level of its logger.
+Otherwise, the request is said to be disabled. A logger without an assigned level will inherit
+one from the hierarchy. This rule is summarized below.</p>
+
+<blockquote>
+<b>Basic Selection Rule</b></p>
+
+<p>A log request of level p in a logger with (either assigned or inherited, whichever is appropriate)
+level q, is enabled if p >= q.</p>
+</blockquote>
+</blockquote>
+
+<p>I needed to read the "basic rule" 3 times in order to understand it. Fortunately, there is an example given:
+</p>
+
+<blockquote>
+<p>This rule is at the heart of log4cxx.
+It assumes that levels are ordered. For the standard levels,
+we have TRACE &lt; DEBUG &lt; INFO &lt; WARN &lt; ERROR &lt; FATAL.
+</p>
+
+<p>Here is an example of this rule.</p>
+
+<pre>
+// get a logger instance named "com.foo"
+log4cxx::LoggerPtr  logger(log4cxx::Logger::getLogger("com.foo"));
+
+// Now set its level. Normally you do not need to set the
+// level of a logger programmatically. This is usually done
+// in configuration files.
+logger->setLevel(log4cxx::Level::getInfo());
+
+log4cxx::LoggerPtr barlogger(log4cxx::Logger::getLogger("com.foo.Bar");
+
+// This request is enabled, because WARN >= INFO.
+LOG4CXX_WARN(logger, "Low fuel level.");
+
+// This request is disabled, because DEBUG &lt; INFO.
+LOG4CXX_DEBUG(logger, "Starting search for nearest gas station.");
+
+// The logger instance barlogger, named "com.foo.Bar",
+// will inherit its level from the logger named
+// "com.foo" Thus, the following request is enabled
+// because INFO >= INFO.
+LOG4CXX_INFO(barlogger. "Located nearest gas station.");
+
+// This request is disabled, because DEBUG &lt; INFO.
+LOG4CXX_DEBUG(barlogger, "Exiting gas station search");
+</pre>
+</blockquote>
+
+<p>This example give me a headake. You discover the type <tt>LoggerPtr</tt>
+which seems to be a smart ptr, which is the sign of a complex architecture.
+The there is a comcept of inheritance between loggers. So you have to become
+familiar with this concept. And then you have to print a table of requests
+levels, and then think about the better level of each of your message.
+</p>
+
+<p>What is the difference between a TRACE, a DEBUG and an INFO message?
+Personnaly, I don't know. So it have to be documented somewhere. So you
+have to write this documentation, to read it, and to follow its guidelines.
+</p>
+
+<p>The following line:
+</p>
+
+<pre>
+LOG4CXX_DEBUG(logger, "Starting search for nearest gas station.");
+</pre>
+
+<p>could have been:
+</p>
+
+<pre>
+LOG4CXX_TRACE(logger, "Starting search for nearest gas station.");
+</pre>
+
+<p>or:
+</p>
+
+<pre>
+LOG4CXX_INFO(logger, "Starting search for nearest gas station.");
+</pre>
+
+<p>it would be the same for me. However, from the log4cxx point of view,
+it is not, there are nuances. Some people may think it is a useful feature
+that add precision to the type of output. I personnaly think it only adds
+confusion. 
+</p>
+
+<p>In C++, there is only 2 standard stream for output : <tt>std::cout</tt>
+and <tt>std::cerr</tt>. The first one is for normal execution flow, the second
+is for outputing errors. That's quite simple.
+</p>
+
+<p>Back to log4cxx, if you want to output an error, you have to decide if it is
+a simple ERROR or a FATAL one. What is the purpose of this distinction, I don't know.
+May be the first one is an error that is not so much an error, while the second one
+is a real error. To add more confusion, there is an other kind or error that it not
+really an error, the WARN level.
+</p>
+
+<p>The WARN level is the undetermined level. You never know if it is a simple information
+message, or an error message. In the given example, it first seems to have a sence to
+give a warning that we detected a low full level, because we think of the orange light
+which is triggered when we are driving in our car, and because this is a very useful
+indication of the gauge.
+</p>
+
+<p>But in case of logging, in my opinion, it has no meaning. Why? Because we put this information
+in a file on disk, that almost nobody will read excepted the developpers who asked for that.
+By logging a warning message, we are not switching on an orange ligth on the desktop of the car,
+we are saving the information at the gauge level. Does the driver look inside its gauge to know
+if there is some fuel? Of course not.
+</p>
+
+<p>The correct way to report such a warning is to report it to the user. So, you will have somewhere
+a class specialized in reporting this warning, and from the point of view of this class, reporting
+a low fuel level is just a normal event, that will be logged as a TRACE event, or maybe as an
+INFO or a DEBUG depending on each reader point of view.
+</p>
+
+<p>So, I think warning messages are useless, and even nocive, because they give the false impression
+we are doing something useful by reporting a problem. But logging is not reporting.
+</p>
+
+</body>
+</html>

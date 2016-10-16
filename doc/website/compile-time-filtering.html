@@ -1,0 +1,29 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Compile-time filtering</h3>
+
+<p>Disabling a call to a C style function at compile time
+can be difficult if it is a variadic one: 
+</p>
+
+<pre>#define TRACE printf
+
+void Test()
+{
+    TRACE( "Entering %s", __FUNCTION__ );
+}
+</pre>
+
+<p>On Windows with Microsoft Visual C++, the
+<a href="http://msdn2.microsoft.com/en-us/library/s6btaxcs(VS.80).aspx">__noop</a>
+compiler intrinsic can be used to ignore the TRACE call and its arguments:
+</p>
+
+<pre>#define TRACE __noop</pre>
+
+</body>
+</html>

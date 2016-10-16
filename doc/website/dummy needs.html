@@ -1,0 +1,129 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+<h3>Logging for dummies</h3>
+
+<img src="images/776061_despair.jpg" width="112" heigh="150" />
+
+<p>Let's try to figure out what are the basic needs of a C++ programmer
+looking for a logging library:
+</p>
+
+<blockquote>
+<a href="http://www.thescripts.com/forum/thread470005.html">Looking for a good C++ logging library</a>
+<p>
+I'm looking for a good logging library that is easy to use, and well
+documented.
+I've already looked at log4cxx, log4cplus, and Log4cpp.
+</p>
+<p>
+Either I couldn't find the documentation, or I couldn't figure out how
+to get them to work with my code.
+</p>
+<p>
+Does any one know of a good logging library that is easy to use, easy
+to add to an existing project, and that is well documented.
+</p>
+</blockquote>
+
+<p>This is just an example, and one example doesn't prove anything.
+However, I think this is the perfect and typical example of the main
+concern of someone looking for a logging library. He wants a <i>good</i>
+library, that is:
+</p>
+
+<ul>
+<li>easy to use</li>
+<li>easy to add to an existing project</li>
+<li>well documented</li>
+</ul>
+
+<p>The meaning of <i>good</i> is quite vague, even for the guy who use
+that word. It mostly means "a library that C++ experts would find not
+too bad". But he is not looking for a powerful library that C++ experts
+use to "program the space shuttle", no, he "just wants thinks to work".
+</p>
+
+<p>Now, just for fun, let's try to summarize what are the strong point
+of the "various existing C/C++ logging libraries" from their author
+point of view:
+</p>
+
+<ul>
+<li>simple/easy to use: 12</li>
+<li>easy to customize/flexible/extensible: 8</li>
+<li>efficient/fast: 7</li>
+<li>platform-independent/cross platform/portable: 5</li>
+<li>different log outputs: 4</li>
+<li>thread-safe/multithreaded: 3</li>
+<li>configurable: 3</li>
+<li>powerful: 2</li>
+<li>Automatic logfile backup/backlog writing: 2</li>
+<li>free</li>
+<li>arbitrarily granular control over log management and configuration</li>
+<li>enhancable</li>
+<li>lightweight</li>
+<li>XML oriented</li>
+<li>profiling</li>
+<li>type-safe</li>
+<li>atomic</li>
+<li>readable trace logs</li>
+<li>small amount of code</li>
+<li>well documented</li>
+<li>UNICODE support</li>
+</ul>
+
+<p>As we can see, many libraries claims to be simple to use. In fact, it seems
+to be the main concern of library authors. At the same time, almost no one
+seems to think that "well documenting its library" is important, as well
+as make the integration easy.
+</p>
+
+<p>For many library designers, an easy to use library is a library that has
+a short learning curve, i.e a well designed API that makes it fast to learn
+and understand.
+</p>
+
+<p>As a result, almost all libraries claim to be easy to use. For example,
+log4cplus says it "is a simple to use C++ logging API". However,
+the author of the message above tried this library, and it seems he
+says he was not able to make it work with his code.
+</p>
+
+<p>That is a thing that many developper forget, and don't want to remember:
+if they develop the best library in the world but no other people than them
+can include it in they project, nobody will use it. 
+</p>
+
+<p>Most people won't spend 2 whole nights to try to use it. How long do you
+think people will accept to spend to try your library, especially when there
+are "so much competitors"? 1 hour? 15 minutes? 1 minute?  
+</p>
+
+<p>If people can't just unzip and directly use it, most of them will just
+try something else. Even if an INSTALL file was given, they won't read it.
+And if they do, and they discover they need something more,
+like downloading and installing another library,
+or download and learn how to use a build system, or something else,
+yet more people will give up, and they will prefer to develop their
+own logging library, because developping something new is much more
+exiting than fixing bugs and trying to understand someone else conception
+of "simplicity". 
+</p>
+
+<p>Then, some of them will be happy of their work, and will more or less
+extract their logging code from their project, give it a name and upload
+it on sourceforge, whithout giving any documentation or easy way to
+build it, i.e doing exactly what other authors did in order to make
+them develop their own in-house solution - full circle.
+</p>
+
+<h4>Doxygen, the magic answer</h4>
+<p>
+</p>
+
+</body>
+</html>
